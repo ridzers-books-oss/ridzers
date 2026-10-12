@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vintage Bookshelf & E-Reader</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- PDF.js Library for PDF Rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Configure PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+
+    <style>
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Inter', sans-serif; }
+
+        /* Realistic Mahogany Wood Shelf Styling */
+        .wood-shelf {
+            background: linear-gradient(180deg, #52270c 0%, #381805 60%, #1f0b02 100%);
+            box-shadow: 0 14px 28px rgba(0,0,0,0.85), inset 0 2px 4px rgba(255, 255, 255, 0.15), inset 0 -3px 6px rgba(0,0,0,0.9);
+            border-bottom: 2px solid #140601;
+        }
+
+        .shelf-shadow {
+            background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+        }
+
+        .wood-background {
+            background-color: #120904;
+            background-image:
+                radial-gradient(circle at 50% 30%, rgba(70, 35, 12, 0.4) 0%, rgba(10, 5, 2, 0.95) 85%),
+                linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.8));
+        }
+
+        /* 3D Realistic Book Spines */
+        .shelf-container {
+            perspective: 1200px;
+        }
+
+        .book-spine {
+            transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+            position: relative;
+            box-shadow: -4px 0 10px rgba(0,0,0,0.6), inset 2px 0 4px rgba(255,255,255,0.15), inset -2px 0 4px rgba(0,0,0,0.7);
+        }
+
+        .book-spine::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0.18) 0%,
+                rgba(255,255,255,0) 10%,
+                rgba(0,0,0,0.15) 20%,
+                rgba(255,255,255,0.05) 50%,
+                rgba(0,0,0,0.2) 85%,
+                rgba(0,0,0,0.5) 100%);
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        /* Spine Ridge Accents */
+        .spine-ridge {
+            position: absolute;
+            left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(0,0,0,0.8) 100%);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        }
+
+        .book-spine:hover {
+            transform: translateY(-22px) scale(1.04) translateZ(30px) rotateY(-4deg);
+            box-shadow: -10px 25px 30px rgba(0,0,0,0.9), 0 0 20px rgba(217, 119, 6, 0.4);
+        }
+
+        /* Standard custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0502; }
+        ::-webkit-scrollbar-thumb { background: #381805; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52270c; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased overflow-x-hidden wood-background selection:bg-amber-800 selection:text-white">
+
+    <div id="app" class="min-h-screen flex flex-col justify-between relative">
+
+        <!-- Top Header Navigation Bar -->
+        <header class="w-full bg-black/60 backdrop-blur-md border-b border-amber-900/40 px-6 py-4 flex justify-between items-center z-20 sticky top-0 shadow-lg">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-amber-950 border border-amber-700/50 flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-book-bookmark text-amber-500 text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold font-cinzel tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600 bg-clip-text text-transparent">
+                        THE RAPIST NIGGER
+                    </h1>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button id="fullscreenBtn" onclick="toggleFullScreen()" class="p-2.5 px-4 rounded-lg bg-amber-950/70 hover:bg-amber-900 border border-amber-700/50 text-amber-200 transition-all duration-200 flex items-center space-x-2 text-sm font-medium shadow-md">
+                    <i id="fullscreenIcon" class="fa-solid fa-expand text-amber-400"></i>
+                    <span id="fullscreenText" class="hidden sm:inline">Fullscreen</span>
+                </button>
+            </div>
+        </header>
+
+        <main id="bookshelfView" class="container mx-auto px-4 py-8 flex-1 flex flex-col justify-center transition-opacity duration-500">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl md:text-4xl font-cinzel font-bold text-amber-100 tracking-wide mb-2 drop-shadow-md">Books</h2>
+            </div>
+
+            <!-- Library Bookshelf Grid -->
+            <div class="max-w-5xl mx-auto w-full space-y-20 py-4">
+
+                <!-- Shelf Row 1 -->
+                <div class="relative">
+                    <div id="shelfRow1" class="flex justify-around items-end px-8 md:px-16 pb-2 min-h-[250px] shelf-container"></div>
+                    <!-- Mahogany Wood Plank -->
+                    <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4">
+                        <div class="w-full h-1 bg-amber-950/50"></div>
+                    </div>
+                    <div class="shelf-shadow h-10 w-full"></div>
+                </div>
+
+                <!-- Shelf Row 2 -->
+                <div class="relative">
+                    <div id="shelfRow2" class="flex justify-around items-end px-8 md:px-16 pb-2 min-h-[250px] shelf-container"></div>
+                    <!-- Mahogany Wood Plank -->
+                    <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4">
+                        <div class="w-full h-1 bg-amber-950/50"></div>
+                    </div>
+                    <div class="shelf-shadow h-10 w-full"></div>
+                </div>
+
+            </div>
+        </main>
+
+        <div id="readerView" class="fixed inset-0 bg-black z-50 hidden flex-col transition-all duration-300">
+
+            <!-- E-Reader Top Bar Navigation -->
+            <div id="readerHeader" class="w-full bg-zinc-950 border-b border-zinc-800 px-6 py-3 flex justify-between items-center z-10 transition-colors">
+                <button onclick="closeReader()" class="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/60 flex items-center space-x-2 text-sm font-medium transition-all shadow">
+                    <i class="fa-solid fa-arrow-left text-amber-500"></i>
+                    <span>Shelf</span>
+                </button>
+
+                <div class="text-center px-4">
+                    <h3 id="readerTitle" class="font-cinzel text-lg md:text-xl font-bold text-zinc-100 tracking-wider truncate max-w-xs md:max-w-md">Book Title</h3>
+                    <p id="readerAuthor" class="text-xs text-amber-500/80 font-sans tracking-wide">Author Name</p>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <button id="viewModeBtn" onclick="toggleViewMode()" title="Toggle Single or Two-Page Spread" class="p-2.5 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/60 text-amber-400 text-sm font-medium transition-all flex items-center space-x-1.5 shadow">
+                        <i id="viewModeIcon" class="fa-solid fa-book-open"></i>
+                        <span id="viewModeText" class="hidden sm:inline text-xs">Spread</span>
+                    </button>
+
+                    <button onclick="toggleReaderFullScreen()" title="Fullscreen Reader" class="p-2.5 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/60 text-amber-400 text-sm font-medium transition-all flex items-center space-x-1.5 shadow">
+                        <i id="readerFsIcon" class="fa-solid fa-expand"></i>
+                        <span id="readerFsText" class="hidden sm:inline text-xs">Fullscreen</span>
+                    </button>
+
+                    <div class="hidden md:flex items-center space-x-2 text-xs text-zinc-400 font-mono bg-zinc-900 px-3 py-1.5 rounded-md border border-zinc-800">
+                        <i class="fa-solid fa-bookmark text-amber-500"></i>
+                        <span><span id="currentPageNum" class="text-zinc-100 font-bold">1</span> / <span id="totalPagesNum">1</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- E-Reader Canvas Container -->
+            <div id="readerCanvasContainer" class="flex-1 flex items-center justify-center p-2 md:p-6 relative overflow-hidden select-none bg-black">
+
+                <!-- Loading PDF Overlay -->
+                <div id="pdfLoadingIndicator" class="absolute inset-0 bg-black/90 z-30 flex flex-col items-center justify-center space-y-3 hidden">
+                    <i class="fa-solid fa-circle-notch fa-spin text-amber-500 text-3xl"></i>
+                    <p class="text-xs text-zinc-400 font-mono tracking-widest uppercase">Rendering Document Pages...</p>
+                </div>
+
+                <!-- Two-Page Spread View Container -->
+                <div id="spreadViewContainer" class="w-full max-w-6xl h-[78vh] md:h-[82vh] flex rounded-lg overflow-hidden relative bg-black">
+
+                    <!-- Left Page -->
+                    <div id="leftPageWrapper" class="w-1/2 h-full relative flex flex-col justify-between p-4 overflow-hidden border-r border-zinc-900 bg-white shadow-2xl">
+                        <div id="leftHeader" class="text-[10px] font-mono tracking-widest text-left uppercase select-none text-zinc-500">
+                            <span id="leftHeaderTitle">GENTLEMAN'S ARCHIVE</span>
+                        </div>
+
+                        <div class="flex-1 flex items-center justify-center relative overflow-hidden my-2">
+                            <canvas id="leftPageCanvas" class="max-h-full max-w-full object-contain"></canvas>
+                            <div id="leftBlankFallback" class="absolute inset-0 hidden"></div>
+                        </div>
+
+                        <div id="leftFooter" class="text-[10px] font-mono text-left select-none text-zinc-500">
+                            <span id="leftPageNumDisplay">1</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Page -->
+                    <div id="rightPageWrapper" class="w-1/2 h-full relative flex flex-col justify-between p-4 overflow-hidden bg-white shadow-2xl">
+                        <div id="rightHeader" class="text-[10px] font-mono tracking-widest text-right uppercase select-none text-zinc-500">
+                            <span id="rightHeaderTitle">E-READER MODE</span>
+                        </div>
+
+                        <div class="flex-1 flex items-center justify-center relative overflow-hidden my-2">
+                            <canvas id="rightPageCanvas" class="max-h-full max-w-full object-contain"></canvas>
+                            <div id="rightBlankFallback" class="absolute inset-0 hidden"></div>
+                        </div>
+
+                        <div id="rightFooter" class="text-[10px] font-mono text-right select-none text-zinc-500">
+                            <span id="rightPageNumDisplay">2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Single Page View Container -->
+                <div id="singleViewContainer" class="w-full max-w-3xl h-[78vh] md:h-[82vh] hidden flex-col rounded-lg overflow-hidden relative p-4 md:p-6 justify-between bg-white shadow-2xl">
+                    <div id="singleHeader" class="text-[10px] font-mono tracking-widest text-center uppercase select-none text-zinc-500">
+                        <span id="singleHeaderTitle">ARCHIVE VOLUME</span>
+                    </div>
+
+                    <div class="flex-1 flex items-center justify-center relative overflow-hidden my-2">
+                        <canvas id="singlePageCanvas" class="max-h-full max-w-full object-contain"></canvas>
+                        <div id="singleBlankFallback" class="absolute inset-0 hidden"></div>
+                    </div>
+
+                    <div id="singleFooter" class="flex justify-between items-center text-[10px] font-mono select-none border-t border-zinc-200 pt-2 text-zinc-500">
+                        <span id="singleBookAuthorFooter">Author</span>
+                        <span>Page <span id="singlePageNumDisplay" class="font-bold">1</span></span>
+                    </div>
+                </div>
+
+                <!-- Navigation Overlay Arrows -->
+                <button onclick="prevPage()" class="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-700 hover:bg-amber-600 hover:text-white text-zinc-300 flex items-center justify-center transition-all shadow-2xl z-20 group">
+                    <i class="fa-solid fa-chevron-left text-lg group-hover:-translate-x-0.5 transition-transform"></i>
+                </button>
+
+                <button onclick="nextPage()" class="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-700 hover:bg-amber-600 hover:text-white text-zinc-300 flex items-center justify-center transition-all shadow-2xl z-20 group">
+                    <i class="fa-solid fa-chevron-right text-lg group-hover:translate-x-0.5 transition-transform"></i>
+                </button>
+            </div>
+
+            <!-- E-Reader Bottom Bar -->
+            <div id="readerFooterBar" class="w-full bg-zinc-950 border-t border-zinc-900 px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3 z-10">
+                <div class="w-full md:w-2/3 flex items-center space-x-4">
+                    <span class="text-xs text-zinc-500 font-mono">1</span>
+                    <input type="range" id="pageSlider" min="1" max="100" value="1" oninput="onSliderChange(this.value)" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-600 focus:outline-none">
+                    <span id="sliderMaxLabel" class="text-xs text-zinc-500 font-mono">100</span>
+                </div>
+
+                <div class="flex items-center space-x-3 text-xs">
+                    <button onclick="goToPage(1)" class="px-3 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-colors">First</button>
+                    <button onclick="goToPage(currentBook ? currentBook.totalPages : 100)" class="px-3 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-colors">Last</button>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="w-full bg-black/80 border-t border-amber-900/30 py-3 px-6 text-center text-xs text-amber-700/60 z-10">
+            <p>&copy; 2026 Gentleman's Archive Library • Self-Contained E-Reader</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Books Dataset Configuration
+        // Book 1: Pure pitch-black spine (#000000) with gold foil and R.N monogram
+        // Books 2-8: Pure crisp white spines (#FFFFFF) with dark borders, accents, and R.N monograms
+        const booksData = [
+            {
+                id: 'book-1',
+                title: 'Book 1',
+                author: 'Liam L. Larmark',
+                isBlackBook: true,
+                pdfUrl: "pdf/book1.pdf",
+                totalPages: 5,
+                leatherBg: 'bg-black',
+                borderStyle: 'border-zinc-800',
+                spineWidth: 'w-5 md:w-20',
+                height: 'h-52 md:h-60',
+                goldFoil: 'text-amber-400',
+                monogramColor: 'text-amber-400',
+                row: 1
+            },
+            {
+                id: 'book 2',
+                title: 'Book 2',
+                author: 'Liam L. Larmark',
+                isWhiteBook: true,
+                pdfUrl: '',
+                totalPages: 14,
+                leatherBg: 'bg-white',
+                borderStyle: 'border-zinc-300',
+                spineWidth: 'w-16 md:w-22',
+                height: 'h-56 md:h-64',
+                goldFoil: 'text-zinc-900',
+                monogramColor: 'text-zinc-900',
+                row: 1
+            },
+            {
+                id: 'Book 3',
+                title: 'Book 3',
+                author: 'Liam L. Larmark',
+                isWhiteBook: true,
+                pdfUrl: '',
+                totalPages: 14,
+                leatherBg: 'bg-white',
+                borderStyle: 'border-zinc-300',
+                spineWidth: 'w-12 md:w-16',
+                height: 'h-48 md:h-56',
+                goldFoil: 'text-zinc-900',
+                monogramColor: 'text-zinc-900',
+                row: 1
+            },
+            {
+                id: 'Book 4',
+                title: 'Book 4',
+                author: 'Liam L. Larmark',
+                isWhiteBook: true,
+                pdfUrl: '',
+                totalPages: 14,
+                leatherBg: 'bg-white',
+                borderStyle: 'border-zinc-300',
+                spineWidth: 'w-14 md:w-18',
+                height: 'h-52 md:h-60',
+                goldFoil: 'text-zinc-900',
+                monogramColor: 'text-zinc-900',
+                row: 1
+            },
+            {
+                id: 'Book 5',
+                title: 'Book 5',
+                author: 'Liam L. Larmark',
+                isWhiteBook: true,
+                pdfUrl: '',
+                totalPages: 14,
+                leatherBg: 'bg-white',
+                borderStyle: 'border-zinc-300',
+                spineWidth: 'w-14 md:w-20',
+                height: 'h-52 md:h-60',
+                goldFoil: 'text-zinc-900',
+                monogramColor: 'text-zinc-900',
+                row: 2
+            },
+            {
+                id: 'Book 6',
+                title: 'Book 6',
+                author: 'Liam L. Larmark',
+                isWhiteBook: true,
+                pdfUrl: '',
+                totalPages: 14,
+                leatherBg: 'bg-white',
+                borderStyle: 'border-zinc-300',
+                spineWidth: 'w-12 md:w-16',
+                height: 'h-48 md:h-56',
+                goldFoil: 'text-zinc-900',
+                monogramColor: 'text-zinc-900',
+                row: 2
+            },
+            {
+                id: 'Book 7',
+                title: 'Book 7',
+                author: 'Liam L. Larmark',
+                isWhiteBook: true,
+                pdfUrl: '',
+                totalPages: 14,
+                leatherBg: 'bg-white',
+                borderStyle: 'border-zinc-300',
+                spineWidth: 'w-16 md:w-22',
+                height: 'h-56 md:h-64',
+                goldFoil: 'text-zinc-900',
+                monogramColor: 'text-zinc-900',
+                row: 2
+            },
+            {
+                id: 'Book 8',
+                title: 'Book 8',
+                author: 'Liam L. Larmark',
+                isWhiteBook: true,
+                pdfUrl: '',
+                totalPages: 14,
+                leatherBg: 'bg-white',
+                borderStyle: 'border-zinc-300',
+                spineWidth: 'w-14 md:w-18',
+                height: 'h-52 md:h-60',
+                goldFoil: 'text-zinc-900',
+                monogramColor: 'text-zinc-900',
+                row: 2
+            }
+        ];
+
+        // State Management Variables
+        let currentBook = null;
+        let currentPage = 1;
+        let isSinglePageView = false;
+        let pdfDocInstance = null;
+        const STORAGE_KEY = 'gentlemans_archive_progress_v4';
+
+        function renderBookshelf() {
+            const row1 = document.getElementById('shelfRow1');
+            const row2 = document.getElementById('shelfRow2');
+
+            row1.innerHTML = '';
+            row2.innerHTML = '';
+
+            const savedProgress = loadProgress();
+
+            booksData.forEach((book) => {
+                const bookProgress = savedProgress[book.id] || { page: 1 };
+                const isRead = bookProgress.page > 1;
+
+                const bookEl = document.createElement('div');
+                bookEl.className = `book-spine ${book.spineWidth} ${book.height} ${book.leatherBg} rounded-t-sm border-t-2 border-x ${book.borderStyle} flex flex-col justify-between items-center py-5 px-1 relative select-none group`;
+                bookEl.setAttribute('onclick', `openBook('${book.id}')`);
+
+                // Divider line color: amber for black book, dark charcoal for white books
+                const dividerColor = book.isBlackBook ? 'bg-amber-500/40' : 'bg-zinc-400';
+
+                bookEl.innerHTML = `
+                    <div class="spine-ridge top-4"></div>
+                    <div class="spine-ridge top-8"></div>
+                    <div class="spine-ridge bottom-8"></div>
+                    <div class="spine-ridge bottom-4"></div>
+
+                    <div class="w-full border-b ${book.isBlackBook ? 'border-amber-500/40' : 'border-zinc-300'} pb-1 flex justify-center mt-6">
+                        <div class="w-3/4 h-0.5 ${dividerColor}"></div>
+                    </div>
+
+                    <div class="flex-1 flex items-center justify-center my-3 overflow-hidden">
+                        <span class="font-cinzel text-xs md:text-sm font-extrabold ${book.goldFoil} tracking-widest uppercase [writing-mode:vertical-rl] rotate-180 truncate max-h-[140px] drop-shadow">
+                            ${book.title}
+                        </span>
+                    </div>
+
+                    <div class="w-full pt-1 border-t ${book.isBlackBook ? 'border-amber-500/40' : 'border-zinc-300'} flex flex-col items-center mb-6">
+                        ${isRead ? `
+                            <div class="text-[9px] font-mono ${book.isBlackBook ? 'text-amber-300 bg-black/80 border-amber-500/40' : 'text-zinc-900 bg-zinc-100 border-zinc-400'} px-1 rounded border">
+                                p.${bookProgress.page}
+                            </div>
+                        ` : `
+                            <span class="font-cinzel font-black tracking-widest text-[11px] ${book.monogramColor}">
+                                R.N
+                            </span>
+                        `}
+                    </div>
+                `;
+
+                if (book.row === 1) {
+                    row1.appendChild(bookEl);
+                } else {
+                    row2.appendChild(bookEl);
+                }
+            });
+        }
+
+        // LocalStorage Reading Progress Handlers
+        function loadProgress() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : {};
+            } catch (e) {
+                console.error('Failed to load progress from localStorage', e);
+                return {};
+            }
+        }
+
+        function saveProgress(bookId, pageNum) {
+            try {
+                const progress = loadProgress();
+                progress[bookId] = {
+                    page: pageNum,
+                    lastRead: new Date().toISOString()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+            } catch (e) {
+                console.error('Failed to save progress to localStorage', e);
+            }
+        }
+
+        async function openBook(bookId) {
+            currentBook = booksData.find(b => b.id === bookId);
+            if (!currentBook) return;
+
+            const progress = loadProgress();
+            currentPage = (progress[bookId] && progress[bookId].page) ? progress[bookId].page : 1;
+
+            if (!isSinglePageView) {
+                if (currentPage % 2 === 0) currentPage -= 1;
+            }
+            if (currentPage < 1) currentPage = 1;
+
+            document.getElementById('readerTitle').innerText = currentBook.title;
+            document.getElementById('readerAuthor').innerText = currentBook.author;
+
+            // Load PDF if configured
+            pdfDocInstance = null;
+            if (currentBook.pdfUrl) {
+                document.getElementById('pdfLoadingIndicator').classList.remove('hidden');
+                try {
+                    const loadingTask = pdfjsLib.getDocument({
+                        url: currentBook.pdfUrl,
+                        cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
+                        cMapPacked: true,
+                    });
+                    pdfDocInstance = await loadingTask.promise;
+                    currentBook.totalPages = pdfDocInstance.numPages;
+                } catch (err) {
+                    console.error('Error loading PDF:', err);
+                } finally {
+                    document.getElementById('pdfLoadingIndicator').classList.add('hidden');
+                }
+            }
+
+            document.getElementById('totalPagesNum').innerText = currentBook.totalPages;
+            const slider = document.getElementById('pageSlider');
+            slider.max = currentBook.totalPages;
+            document.getElementById('sliderMaxLabel').innerText = currentBook.totalPages;
+
+            if (currentPage > currentBook.totalPages) currentPage = 1;
+
+            await updatePageSpread();
+
+            const readerView = document.getElementById('readerView');
+            readerView.classList.remove('hidden');
+            readerView.classList.add('flex');
+        }
+
+        // Toggle Single vs Two-Page Spread Mode
+        async function toggleViewMode() {
+            isSinglePageView = !isSinglePageView;
+            const icon = document.getElementById('viewModeIcon');
+            const text = document.getElementById('viewModeText');
+            const spreadContainer = document.getElementById('spreadViewContainer');
+            const singleContainer = document.getElementById('singleViewContainer');
+
+            if (isSinglePageView) {
+                icon.className = "fa-solid fa-file";
+                text.innerText = "Single";
+                spreadContainer.classList.add('hidden');
+                spreadContainer.classList.remove('flex');
+                singleContainer.classList.remove('hidden');
+                singleContainer.classList.add('flex');
+            } else {
+                icon.className = "fa-solid fa-book-open";
+                text.innerText = "Spread";
+                if (currentPage % 2 === 0) currentPage -= 1;
+                singleContainer.classList.add('hidden');
+                singleContainer.classList.remove('flex');
+                spreadContainer.classList.remove('hidden');
+                spreadContainer.classList.add('flex');
+            }
+            await updatePageSpread();
+        }
+
+        // Close Reader View
+        function closeReader() {
+            const readerView = document.getElementById('readerView');
+            readerView.classList.add('hidden');
+            readerView.classList.remove('flex');
+
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+
+            pdfDocInstance = null;
+            renderBookshelf();
+        }
+
+        async function renderPageToCanvas(pageNum, canvasId, fallbackId) {
+            const canvas = document.getElementById(canvasId);
+            const fallback = document.getElementById(fallbackId);
+
+            if (!currentBook || pageNum > currentBook.totalPages || pageNum < 1) {
+                canvas.style.display = 'none';
+                fallback.classList.remove('hidden');
+                fallback.style.backgroundColor = '#ffffff';
+                return;
+            }
+
+            if (!pdfDocInstance) {
+                canvas.style.display = 'none';
+                fallback.classList.remove('hidden');
+                fallback.style.backgroundColor = '#ffffff';
+                return;
+            }
+
+            try {
+                fallback.classList.add('hidden');
+                canvas.style.display = 'block';
+
+                const page = await pdfDocInstance.getPage(pageNum);
+                const container = canvas.parentElement;
+                const parentWidth = container.clientWidth || 400;
+                const parentHeight = container.clientHeight || 600;
+
+                const unscaledViewport = page.getViewport({ scale: 1.0 });
+                const scale = Math.min(parentWidth / unscaledViewport.width, parentHeight / unscaledViewport.height) * 1.35;
+                const viewport = page.getViewport({ scale: scale });
+
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+
+                await page.render(renderContext).promise;
+            } catch (err) {
+                console.error("Page render error:", err);
+                canvas.style.display = 'none';
+                fallback.classList.remove('hidden');
+                fallback.style.backgroundColor = '#ffffff';
+            }
+        }
+
+        // Update Spread Display
+        async function updatePageSpread() {
+            if (!currentBook) return;
+
+            if (isSinglePageView) {
+                document.getElementById('currentPageNum').innerText = currentPage;
+                document.getElementById('singlePageNumDisplay').innerText = currentPage;
+                document.getElementById('singleHeaderTitle').innerText = currentBook.title;
+                document.getElementById('singleBookAuthorFooter').innerText = currentBook.author;
+
+                await renderPageToCanvas(currentPage, 'singlePageCanvas', 'singleBlankFallback');
+            } else {
+                const leftPage = currentPage;
+                const rightPage = currentPage + 1;
+
+                document.getElementById('currentPageNum').innerText = leftPage;
+                document.getElementById('leftPageNumDisplay').innerText = leftPage <= currentBook.totalPages ? leftPage : '';
+                document.getElementById('rightPageNumDisplay').innerText = rightPage <= currentBook.totalPages ? rightPage : '';
+
+                document.getElementById('leftHeaderTitle').innerText = currentBook.title;
+                document.getElementById('rightHeaderTitle').innerText = currentBook.author;
+
+                await Promise.all([
+                    renderPageToCanvas(leftPage, 'leftPageCanvas', 'leftBlankFallback'),
+                    renderPageToCanvas(rightPage, 'rightPageCanvas', 'rightBlankFallback')
+                ]);
+            }
+
+            document.getElementById('pageSlider').value = currentPage;
+            saveProgress(currentBook.id, currentPage);
+        }
+
+        async function nextPage() {
+            if (!currentBook) return;
+            const step = isSinglePageView ? 1 : 2;
+            if (currentPage + step <= currentBook.totalPages) {
+                currentPage += step;
+                await updatePageSpread();
+            }
+        }
+
+        async function prevPage() {
+            if (!currentBook) return;
+            const step = isSinglePageView ? 1 : 2;
+            if (currentPage - step >= 1) {
+                currentPage -= step;
+                await updatePageSpread();
+            }
+        }
+
+        async function goToPage(val) {
+            if (!currentBook) return;
+            let pageNum = parseInt(val, 10);
+            if (isNaN(pageNum)) pageNum = 1;
+            if (pageNum < 1) pageNum = 1;
+            if (pageNum > currentBook.totalPages) pageNum = currentBook.totalPages;
+
+            if (!isSinglePageView) {
+                if (pageNum % 2 === 0) pageNum -= 1;
+            }
+
+            currentPage = pageNum;
+            await updatePageSpread();
+        }
+
+        async function onSliderChange(val) {
+            await goToPage(val);
+        }
+
+        // Fullscreen Functions
+        function toggleReaderFullScreen() {
+            const readerView = document.getElementById('readerView');
+            const icon = document.getElementById('readerFsIcon');
+            const text = document.getElementById('readerFsText');
+
+            if (!document.fullscreenElement) {
+                readerView.requestFullscreen().then(() => {
+                    icon.className = "fa-solid fa-compress";
+                    text.innerText = "Exit Fullscreen";
+                }).catch(() => {
+                    document.documentElement.requestFullscreen();
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().then(() => {
+                        icon.className = "fa-solid fa-expand";
+                        text.innerText = "Fullscreen";
+                    });
+                }
+            }
+        }
+
+        function toggleFullScreen() {
+            const icon = document.getElementById('fullscreenIcon');
+            const text = document.getElementById('fullscreenText');
+
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    icon.className = "fa-solid fa-compress";
+                    text.innerText = "Exit Fullscreen";
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().then(() => {
+                        icon.className = "fa-solid fa-expand";
+                        text.innerText = "Fullscreen";
+                    });
+                }
+            }
+        }
+
+        // Keyboard Arrow Navigation
+        document.addEventListener('keydown', (e) => {
+            const readerView = document.getElementById('readerView');
+            if (!readerView.classList.contains('hidden')) {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    nextPage();
+                } else if (e.key === 'ArrowLeft') {
+                    prevPage();
+                } else if (e.key === 'Escape') {
+                    if (!document.fullscreenElement) {
+                        closeReader();
+                    }
+                }
+            }
+        });
+
+        // Initialize Shelf on Load
+        window.onload = function() {
+            renderBookshelf();
+        };
+    </script>
+</body>
+</html>
