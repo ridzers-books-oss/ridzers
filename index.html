@@ -372,6 +372,7 @@
         function applyZoom() {
             const spreadContainer = document.getElementById('spreadViewContainer');
             const singleContainer = document.getElementById('singleViewContainer');
+            const container = document.getElementById('readerCanvasContainer');
             const display = document.getElementById('zoomLevelDisplay');
 
             if (display) {
@@ -379,8 +380,25 @@
             }
 
             const transformValue = `scale(${currentZoomScale})`;
-            if (spreadContainer) spreadContainer.style.transform = transformValue;
-            if (singleContainer) singleContainer.style.transform = transformValue;
+            
+            [spreadContainer, singleContainer].forEach(el => {
+                if (el) {
+                    el.style.transform = transformValue;
+                    // Switch transform-origin to top center so content expands downwards when zooming in
+                    el.style.transformOrigin = currentZoomScale > 1.0 ? 'top center' : 'center center';
+                }
+            });
+
+            if (container) {
+                // Ensure flex alignment allows top scrolling when zoomed
+                if (currentZoomScale > 1.0) {
+                    container.classList.remove('items-center');
+                    container.classList.add('items-start');
+                } else {
+                    container.classList.remove('items-start');
+                    container.classList.add('items-center');
+                }
+            }
         }
 
         async function openBook(bookId) {
