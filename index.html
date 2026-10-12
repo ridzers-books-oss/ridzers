@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vintage Bookshelf & E-Reader</title>
+    <title>The Archive & E-Reader</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -18,22 +18,34 @@
         .font-playfair { font-family: 'Playfair Display', serif; }
         .font-sans { font-family: 'Inter', sans-serif; }
 
-        /* Realistic Mahogany Wood Shelf Styling */
+        /* Writing Mode for Spine Text - Orientation Fixed Right-Side Up */
+        .spine-text-vertical {
+            writing-mode: vertical-rl;
+            transform: rotate(0deg);
+            white-space: nowrap;
+        }
+
+        /* Vintage Mahogany Wood Theme */
         .wood-shelf {
             background: linear-gradient(180deg, #52270c 0%, #381805 60%, #1f0b02 100%);
             box-shadow: 0 14px 28px rgba(0,0,0,0.85), inset 0 2px 4px rgba(255, 255, 255, 0.15), inset 0 -3px 6px rgba(0,0,0,0.9);
             border-bottom: 2px solid #140601;
+            border-radius: 2px;
         }
-
         .shelf-shadow {
             background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
         }
-
         .wood-background {
             background-color: #120904;
-            background-image:
+            background-image: 
                 radial-gradient(circle at 50% 30%, rgba(70, 35, 12, 0.4) 0%, rgba(10, 5, 2, 0.95) 85%),
                 linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.8));
+        }
+
+        .cubby-container {
+            background-color: #1a0f08;
+            border: 2px solid #381805;
+            box-shadow: inset 0 8px 16px rgba(0,0,0,0.9);
         }
 
         /* 3D Realistic Book Spines */
@@ -53,18 +65,17 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(90deg,
-                rgba(255,255,255,0.18) 0%,
-                rgba(255,255,255,0) 10%,
-                rgba(0,0,0,0.15) 20%,
-                rgba(255,255,255,0.05) 50%,
-                rgba(0,0,0,0.2) 85%,
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.18) 0%, 
+                rgba(255,255,255,0) 10%, 
+                rgba(0,0,0,0.15) 20%, 
+                rgba(255,255,255,0.05) 50%, 
+                rgba(0,0,0,0.2) 85%, 
                 rgba(0,0,0,0.5) 100%);
             pointer-events: none;
             border-radius: inherit;
         }
 
-        /* Spine Ridge Accents */
         .spine-ridge {
             position: absolute;
             left: 0; right: 0;
@@ -78,31 +89,30 @@
             box-shadow: -10px 25px 30px rgba(0,0,0,0.9), 0 0 20px rgba(217, 119, 6, 0.4);
         }
 
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0a0502; }
         ::-webkit-scrollbar-thumb { background: #381805; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #52270c; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased overflow-x-hidden wood-background selection:bg-amber-800 selection:text-white">
+<body id="bodyRoot" class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased overflow-x-hidden wood-background selection:bg-amber-800 selection:text-white">
 
     <div id="app" class="min-h-screen flex flex-col justify-between relative">
 
         <!-- Top Header Navigation Bar -->
-        <header class="w-full bg-black/60 backdrop-blur-md border-b border-amber-900/40 px-6 py-4 flex justify-between items-center z-20 sticky top-0 shadow-lg">
+        <header class="w-full bg-black/70 backdrop-blur-md border-b border-amber-900/40 px-6 py-4 flex justify-between items-center z-20 sticky top-0 shadow-lg">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-amber-950 border border-amber-700/50 flex items-center justify-center shadow-md">
-                    <i class="fa-solid fa-book-bookmark text-amber-500 text-xl"></i>
+                <div id="headerLogoBox" class="w-10 h-10 rounded-lg bg-amber-950 border border-amber-700/50 flex items-center justify-center shadow-md">
+                    <i id="headerLogoIcon" class="fa-solid fa-book-bookmark text-amber-500 text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold font-cinzel tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600 bg-clip-text text-transparent">
+                    <h1 id="headerTitle" class="text-xl md:text-2xl font-bold font-cinzel tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600 bg-clip-text text-transparent">
                         THE ARCHIVE
                     </h1>
-                    <p class="text-[10px] text-amber-500/70 uppercase tracking-widest font-mono">Curated Private Collection</p>
+                    <p id="headerSubtitle" class="text-[10px] text-amber-500/70 uppercase tracking-widest font-mono">Curated Private Collection</p>
                 </div>
             </div>
-
+            
             <div class="flex items-center space-x-3">
                 <button id="fullscreenBtn" onclick="toggleFullScreen()" class="p-2.5 px-4 rounded-lg bg-amber-950/70 hover:bg-amber-900 border border-amber-700/50 text-amber-200 transition-all duration-200 flex items-center space-x-2 text-sm font-medium shadow-md">
                     <i id="fullscreenIcon" class="fa-solid fa-expand text-amber-400"></i>
@@ -113,36 +123,40 @@
 
         <main id="bookshelfView" class="container mx-auto px-4 py-8 flex-1 flex flex-col justify-center transition-opacity duration-500">
             <div class="text-center mb-8">
-                <h2 class="text-3xl md:text-4xl font-cinzel font-bold text-amber-100 tracking-wide mb-2 drop-shadow-md">Private Study</h2>
-                <p class="text-amber-400/70 text-sm max-w-md mx-auto">Select any volume to read. Maximized full-bleed PDF rendering mode enabled.</p>
+                <h2 id="mainHeading" class="text-3xl md:text-4xl font-cinzel font-bold text-amber-100 tracking-wide mb-2 drop-shadow-md">Private Study</h2>
+                <p id="mainSubheading" class="text-amber-400/70 text-sm max-w-md mx-auto">Select any volume to read. PDF rendering mode enabled.</p>
             </div>
 
-            <!-- Library Bookshelf Grid -->
-            <div class="max-w-5xl mx-auto w-full space-y-20 py-4">
-
-                <!-- Shelf Row 1 -->
+            <!-- Library Bookshelf Grid (8 Books Total) -->
+            <div class="max-w-4xl mx-auto w-full space-y-12 py-4">
+                
+                <!-- Shelf Row 1 (4 Books) -->
                 <div class="relative">
-                    <div id="shelfRow1" class="flex justify-around items-end px-8 md:px-16 pb-2 min-h-[250px] shelf-container"></div>
-                    <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4">
-                        <div class="w-full h-1 bg-amber-950/50"></div>
+                    <div id="shelfRow1Container" class="cubby-container p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg">
+                        <div id="shelfRow1" class="w-full flex justify-around items-end px-2 shelf-container"></div>
                     </div>
-                    <div class="shelf-shadow h-10 w-full"></div>
+                    <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4 mt-1">
+                        <div class="w-full h-1 bg-amber-950/40"></div>
+                    </div>
+                    <div class="shelf-shadow h-8 w-full"></div>
                 </div>
 
-                <!-- Shelf Row 2 -->
+                <!-- Shelf Row 2 (4 Books) -->
                 <div class="relative">
-                    <div id="shelfRow2" class="flex justify-around items-end px-8 md:px-16 pb-2 min-h-[250px] shelf-container"></div>
-                    <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4">
-                        <div class="w-full h-1 bg-amber-950/50"></div>
+                    <div id="shelfRow2Container" class="cubby-container p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg">
+                        <div id="shelfRow2" class="w-full flex justify-around items-end px-2 shelf-container"></div>
                     </div>
-                    <div class="shelf-shadow h-10 w-full"></div>
+                    <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4 mt-1">
+                        <div class="w-full h-1 bg-amber-950/40"></div>
+                    </div>
+                    <div class="shelf-shadow h-8 w-full"></div>
                 </div>
 
             </div>
         </main>
 
         <div id="readerView" class="fixed inset-0 bg-black z-50 hidden flex-col transition-all duration-300">
-
+            
             <!-- E-Reader Top Bar Navigation -->
             <div id="readerHeader" class="w-full bg-zinc-950/90 backdrop-blur border-b border-zinc-900 px-6 py-2.5 flex justify-between items-center z-10">
                 <button onclick="closeReader()" class="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 flex items-center space-x-2 text-sm font-medium transition-all shadow">
@@ -161,6 +175,20 @@
                         <span id="viewModeText" class="hidden sm:inline text-xs">Spread</span>
                     </button>
 
+                    <!-- Zoom Controls -->
+                    <div class="flex items-center bg-zinc-900 rounded-lg border border-zinc-800 p-0.5 shadow">
+                        <button onclick="zoomOut()" title="Zoom Out" class="p-2 px-2.5 hover:bg-zinc-800 text-amber-400 hover:text-amber-300 rounded-l-md transition-colors">
+                            <i class="fa-solid fa-magnifying-glass-minus"></i>
+                        </button>
+                        <span id="zoomLevelDisplay" class="px-2 text-xs font-mono text-zinc-300">100%</span>
+                        <button onclick="zoomIn()" title="Zoom In" class="p-2 px-2.5 hover:bg-zinc-800 text-amber-400 hover:text-amber-300 rounded-r-md transition-colors">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                        </button>
+                        <button onclick="resetZoom()" title="Reset Zoom" class="p-2 px-2 border-l border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-amber-400 rounded-r-md text-xs font-mono transition-colors">
+                            Reset
+                        </button>
+                    </div>
+
                     <button onclick="toggleReaderFullScreen()" title="Fullscreen Reader" class="p-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-amber-400 text-sm font-medium transition-all flex items-center space-x-1.5 shadow">
                         <i id="readerFsIcon" class="fa-solid fa-expand"></i>
                         <span id="readerFsText" class="hidden sm:inline text-xs">Fullscreen</span>
@@ -173,25 +201,26 @@
                 </div>
             </div>
 
-            <div id="readerCanvasContainer" class="flex-1 flex items-center justify-center p-0 m-0 relative overflow-hidden select-none bg-black">
-
+            <!-- Maximized Full-Bleed PDF Viewport -->
+            <div id="readerCanvasContainer" class="flex-1 flex items-center justify-center p-0 m-0 relative overflow-auto select-none bg-black">
+                
                 <!-- Two-Page Spread View Container -->
-                <div id="spreadViewContainer" class="w-full h-full flex items-center justify-center bg-black">
-                    <div id="leftPageWrapper" class="w-1/2 h-full flex items-center justify-end bg-black overflow-hidden pr-0.5">
+                <div id="spreadViewContainer" class="w-full h-full flex items-center justify-center bg-black transition-transform duration-200 origin-center">
+                    <div id="leftPageWrapper" class="w-1/2 h-full flex items-center justify-end bg-black overflow-hidden pr-0">
                         <canvas id="pdfCanvasLeft" class="max-h-full max-w-full object-contain shadow-2xl"></canvas>
                     </div>
 
-                    <div id="rightPageWrapper" class="w-1/2 h-full flex items-center justify-start bg-black overflow-hidden pl-0.5">
+                    <div id="rightPageWrapper" class="w-1/2 h-full flex items-center justify-start bg-black overflow-hidden pl-0">
                         <canvas id="pdfCanvasRight" class="max-h-full max-w-full object-contain shadow-2xl"></canvas>
                     </div>
                 </div>
 
                 <!-- Single Page View Container -->
-                <div id="singleViewContainer" class="w-full h-full hidden items-center justify-center bg-black overflow-hidden">
+                <div id="singleViewContainer" class="w-full h-full hidden items-center justify-center bg-black overflow-hidden transition-transform duration-200 origin-center">
                     <canvas id="pdfCanvasSingle" class="max-h-full max-w-full object-contain shadow-2xl"></canvas>
                 </div>
 
-                <!-- Floating Touch/Click Arrows -->
+                <!-- Floating Navigation Arrows -->
                 <button onclick="prevPage()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/80 hover:bg-amber-600 border border-zinc-700/60 text-amber-400 hover:text-white flex items-center justify-center transition-all shadow-2xl z-20 group">
                     <i class="fa-solid fa-chevron-left text-xl group-hover:-translate-x-0.5 transition-transform"></i>
                 </button>
@@ -218,7 +247,7 @@
         </div>
 
         <footer class="w-full bg-black/80 border-t border-amber-900/30 py-3 px-6 text-center text-xs text-amber-700/60 z-10">
-            <p>&copy; 2026 Gentleman's Archive Library • Pitch-Black Maximized Reader</p>
+            <p>&copy; 2026 Gentleman's Archive Library • Enchanted Reader Mode</p>
         </footer>
 
     </div>
@@ -229,16 +258,19 @@
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         }
 
-        // Collection Dataset
+        // Collection Dataset - First book is black, books 2-8 are white
         const booksData = [
-            { id: 'book-1', title: 'Book 1', author: 'Author 1', pdfPath: 'book1.pdf', isBlackBook: true, totalPages: 50, leatherBg: 'bg-black', borderStyle: 'border-zinc-800', spineWidth: 'w-14 md:w-20', height: 'h-52 md:h-60', goldFoil: 'text-amber-400', monogramColor: 'text-amber-400', row: 1 },
-            { id: 'book-2', title: 'Book 2', author: 'Author 2', pdfPath: 'pdf/book2.pdf', isWhiteBook: true, totalPages: 50, leatherBg: 'bg-white', borderStyle: 'border-zinc-300', spineWidth: 'w-16 md:w-22', height: 'h-56 md:h-64', goldFoil: 'text-zinc-900', monogramColor: 'text-zinc-900', row: 1 },
-            { id: 'book-3', title: 'Book 3', author: 'Author 3', pdfPath: 'pdf/book3.pdf', isWhiteBook: true, totalPages: 50, leatherBg: 'bg-white', borderStyle: 'border-zinc-300', spineWidth: 'w-12 md:w-16', height: 'h-48 md:h-56', goldFoil: 'text-zinc-900', monogramColor: 'text-zinc-900', row: 1 },
-            { id: 'book-4', title: 'Book 4', author: 'Author 4', pdfPath: 'pdf/book4.pdf', isWhiteBook: true, totalPages: 50, leatherBg: 'bg-white', borderStyle: 'border-zinc-300', spineWidth: 'w-14 md:w-18', height: 'h-52 md:h-60', goldFoil: 'text-zinc-900', monogramColor: 'text-zinc-900', row: 1 },
-            { id: 'book-5', title: 'Book 5', author: 'Author 5', pdfPath: 'pdf/book5.pdf', isWhiteBook: true, totalPages: 50, leatherBg: 'bg-white', borderStyle: 'border-zinc-300', spineWidth: 'w-14 md:w-20', height: 'h-52 md:h-60', goldFoil: 'text-zinc-900', monogramColor: 'text-zinc-900', row: 2 },
-            { id: 'book-6', title: 'Book 6', author: 'Author 6', pdfPath: 'pdf/book6.pdf', isWhiteBook: true, totalPages: 50, leatherBg: 'bg-white', borderStyle: 'border-zinc-300', spineWidth: 'w-12 md:w-16', height: 'h-48 md:h-56', goldFoil: 'text-zinc-900', monogramColor: 'text-zinc-900', row: 2 },
-            { id: 'book-7', title: 'Book 7', author: 'Author 7', pdfPath: 'pdf/book7.pdf', isWhiteBook: true, totalPages: 50, leatherBg: 'bg-white', borderStyle: 'border-zinc-300', spineWidth: 'w-16 md:w-22', height: 'h-56 md:h-64', goldFoil: 'text-zinc-900', monogramColor: 'text-zinc-900', row: 2 },
-            { id: 'book-8', title: 'Book 8', author: 'Author 8', pdfPath: 'pdf/book8.pdf', isWhiteBook: true, totalPages: 50, leatherBg: 'bg-white', borderStyle: 'border-zinc-300', spineWidth: 'w-14 md:w-18', height: 'h-52 md:h-60', goldFoil: 'text-zinc-900', monogramColor: 'text-zinc-900', row: 2 }
+            // Shelf 1 Books
+            { id: 'book-1', title: 'Book 1', author: 'A. Sterling', pdfPath: 'book1.pdf', spineBg: 'bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950', textCol: 'text-amber-400', border: 'border-zinc-700/70', row: 1 },
+            { id: 'book-2', title: 'Book 2', author: 'B. Vance', pdfPath: 'book2.pdf', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 1 },
+            { id: 'book-3', title: 'Book 3', author: 'C. Holloway', pdfPath: 'book3.pdf', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 1 },
+            { id: 'book-4', title: 'Book 4', author: 'D. Sinclair', pdfPath: 'book4.pdf', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 1 },
+
+            // Shelf 2 Books
+            { id: 'book-5', title: 'Book 5', author: 'E. Blackwood', pdfPath: 'book5.pdf', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 },
+            { id: 'book-6', title: 'Book 6', author: 'F. Ashworth', pdfPath: 'book6.pdf', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 },
+            { id: 'book-7', title: 'Book 7', author: 'G. Pendelton', pdfPath: 'book7.pdf', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 },
+            { id: 'book-8', title: 'Book 8', author: 'H. Montgomery', pdfPath: 'book8.pdf', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 }
         ];
 
         // State variables
@@ -246,69 +278,18 @@
         let pdfDoc = null;
         let currentPage = 1;
         let isSinglePageView = false;
-        const STORAGE_KEY = 'gentlemans_archive_progress_v5';
+        let currentZoomScale = 1.0;
+        const MIN_ZOOM = 0.8;
+        const MAX_ZOOM = 2.5;
+        const ZOOM_STEP = 0.25;
 
-        function renderBookshelf() {
-            const row1 = document.getElementById('shelfRow1');
-            const row2 = document.getElementById('shelfRow2');
-            row1.innerHTML = '';
-            row2.innerHTML = '';
-
-            const savedProgress = loadProgress();
-
-            booksData.forEach((book) => {
-                const bookProgress = savedProgress[book.id] || { page: 1 };
-                const isRead = bookProgress.page > 1;
-
-                const bookEl = document.createElement('div');
-                bookEl.className = `book-spine ${book.spineWidth} ${book.height} ${book.leatherBg} rounded-t-sm border-t-2 border-x ${book.borderStyle} flex flex-col justify-between items-center py-5 px-1 relative select-none group`;
-                bookEl.setAttribute('onclick', `openBook('${book.id}')`);
-
-                const dividerColor = book.isBlackBook ? 'bg-amber-500/40' : 'bg-zinc-400';
-
-                bookEl.innerHTML = `
-                    <div class="spine-ridge top-4"></div>
-                    <div class="spine-ridge top-8"></div>
-                    <div class="spine-ridge bottom-8"></div>
-                    <div class="spine-ridge bottom-4"></div>
-
-                    <div class="w-full border-b ${book.isBlackBook ? 'border-amber-500/40' : 'border-zinc-300'} pb-1 flex justify-center mt-6">
-                        <div class="w-3/4 h-0.5 ${dividerColor}"></div>
-                    </div>
-
-                    <div class="flex-1 flex items-center justify-center my-3 overflow-hidden">
-                        <span class="font-cinzel text-xs md:text-sm font-extrabold ${book.goldFoil} tracking-widest uppercase [writing-mode:vertical-rl] rotate-180 truncate max-h-[140px] drop-shadow">
-                            ${book.title}
-                        </span>
-                    </div>
-
-                    <div class="w-full pt-1 border-t ${book.isBlackBook ? 'border-amber-500/40' : 'border-zinc-300'} flex flex-col items-center mb-6">
-                        ${isRead ? `
-                            <div class="text-[9px] font-mono ${book.isBlackBook ? 'text-amber-300 bg-black/80 border-amber-500/40' : 'text-zinc-900 bg-zinc-100 border-zinc-400'} px-1 rounded border">
-                                p.${bookProgress.page}
-                            </div>
-                        ` : `
-                            <span class="font-cinzel font-black tracking-widest text-[11px] ${book.monogramColor}">
-                                R.N
-                            </span>
-                        `}
-                    </div>
-                `;
-
-                if (book.row === 1) {
-                    row1.appendChild(bookEl);
-                } else {
-                    row2.appendChild(bookEl);
-                }
-            });
-        }
+        const STORAGE_KEY = 'gentlemans_archive_progress_v8';
 
         function loadProgress() {
             try {
-                const data = localStorage.getItem(STORAGE_KEY);
-                return data ? JSON.parse(data) : {};
+                const saved = localStorage.getItem(STORAGE_KEY);
+                return saved ? JSON.parse(saved) : {};
             } catch (e) {
-                console.error('Failed to load progress', e);
                 return {};
             }
         }
@@ -316,16 +297,97 @@
         function saveProgress(bookId, pageNum) {
             try {
                 const progress = loadProgress();
-                progress[bookId] = { page: pageNum, lastRead: new Date().toISOString() };
+                progress[bookId] = { page: pageNum, updatedAt: new Date().toISOString() };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
             } catch (e) {
-                console.error('Failed to save progress', e);
+                console.warn('Could not save reading progress:', e);
             }
+        }
+
+        function renderBookshelf() {
+            const row1 = document.getElementById('shelfRow1');
+            const row2 = document.getElementById('shelfRow2');
+
+            if (!row1 || !row2) return;
+
+            row1.innerHTML = '';
+            row2.innerHTML = '';
+
+            const progress = loadProgress();
+
+            booksData.forEach(book => {
+                const bookProgress = progress[book.id];
+                const savedPage = bookProgress ? bookProgress.page : 1;
+
+                const spine = document.createElement('div');
+                spine.className = `book-spine w-16 md:w-20 h-44 md:h-52 ${book.spineBg} border ${book.border} rounded-sm flex flex-col justify-between py-4 px-2 shadow-2xl`;
+                
+                spine.innerHTML = `
+                    <div class="spine-ridge top-4"></div>
+                    <div class="spine-ridge top-8"></div>
+                    <div class="text-center">
+                        <span class="font-cinzel text-[10px] md:text-xs font-black tracking-widest ${book.textCol} drop-shadow">R.N</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center py-2">
+                        <span class="spine-text-vertical font-cinzel text-xs md:text-sm font-bold tracking-widest ${book.textCol} truncate max-h-36 drop-shadow">
+                            ${book.title}
+                        </span>
+                    </div>
+                    <div class="text-center font-mono text-[9px] ${book.textCol} opacity-80">
+                        ${savedPage > 1 ? `<span class="text-emerald-500 font-bold">P.${savedPage}</span>` : ''}
+                    </div>
+                    <div class="spine-ridge bottom-8"></div>
+                    <div class="spine-ridge bottom-4"></div>
+                `;
+
+                spine.onclick = () => openBook(book.id);
+
+                if (book.row === 1) {
+                    row1.appendChild(spine);
+                } else {
+                    row2.appendChild(spine);
+                }
+            });
+        }
+
+        function zoomIn() {
+            if (currentZoomScale < MAX_ZOOM) {
+                currentZoomScale = Math.min(MAX_ZOOM, currentZoomScale + ZOOM_STEP);
+                applyZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoomScale > MIN_ZOOM) {
+                currentZoomScale = Math.max(MIN_ZOOM, currentZoomScale - ZOOM_STEP);
+                applyZoom();
+            }
+        }
+
+        function resetZoom() {
+            currentZoomScale = 1.0;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const spreadContainer = document.getElementById('spreadViewContainer');
+            const singleContainer = document.getElementById('singleViewContainer');
+            const display = document.getElementById('zoomLevelDisplay');
+
+            if (display) {
+                display.innerText = `${Math.round(currentZoomScale * 100)}%`;
+            }
+
+            const transformValue = `scale(${currentZoomScale})`;
+            if (spreadContainer) spreadContainer.style.transform = transformValue;
+            if (singleContainer) singleContainer.style.transform = transformValue;
         }
 
         async function openBook(bookId) {
             currentBook = booksData.find(b => b.id === bookId);
             if (!currentBook) return;
+
+            resetZoom();
 
             const progress = loadProgress();
             currentPage = (progress[bookId] && progress[bookId].page) ? progress[bookId].page : 1;
@@ -341,6 +403,8 @@
             const readerView = document.getElementById('readerView');
             readerView.classList.remove('hidden');
             readerView.classList.add('flex');
+
+            currentBook.totalPages = 50; // default fallback
 
             try {
                 if (window.pdfjsLib && currentBook.pdfPath) {
@@ -370,9 +434,8 @@
             const ctx = canvas.getContext('2d');
 
             if (!pdfDoc || pageNum > pdfDoc.numPages || pageNum < 1) {
-                // Clear and render pitch black blank page
-                canvas.width = containerWidth || 600;
-                canvas.height = containerHeight || 800;
+                canvas.width = containerWidth || 800;
+                canvas.height = containerHeight || 1100;
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 return;
@@ -381,10 +444,10 @@
             try {
                 const page = await pdfDoc.getPage(pageNum);
                 const viewportUnscaled = page.getViewport({ scale: 1 });
-
+                
                 const scaleX = containerWidth / viewportUnscaled.width;
                 const scaleY = containerHeight / viewportUnscaled.height;
-                const scale = Math.min(scaleX, scaleY) * 2; // 2x crisp High-DPI scale
+                const scale = Math.min(scaleX, scaleY) * 2.5;
 
                 const viewport = page.getViewport({ scale: scale });
 
@@ -534,18 +597,24 @@
         // Keyboard navigation listeners
         document.addEventListener('keydown', (e) => {
             const readerView = document.getElementById('readerView');
-            if (readerView.classList.contains('flex')) {
+            if (readerView && readerView.classList.contains('flex')) {
                 if (e.key === 'ArrowRight' || e.key === 'PageDown') {
                     nextPage();
                 } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
                     prevPage();
+                } else if (e.key === '+' || e.key === '=') {
+                    zoomIn();
+                } else if (e.key === '-') {
+                    zoomOut();
+                } else if (e.key === '0') {
+                    resetZoom();
                 } else if (e.key === 'Escape') {
                     closeReader();
                 }
             }
         });
 
-        // Window resize listener to re-scale canvas
+        // Window resize listener
         window.addEventListener('resize', () => {
             const readerView = document.getElementById('readerView');
             if (readerView && readerView.classList.contains('flex')) {
