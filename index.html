@@ -37,7 +37,7 @@
         }
         .wood-background {
             background-color: #120904;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 50% 30%, rgba(70, 35, 12, 0.4) 0%, rgba(10, 5, 2, 0.95) 85%),
                 linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.8));
         }
@@ -65,12 +65,12 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(90deg, 
-                rgba(255,255,255,0.18) 0%, 
-                rgba(255,255,255,0) 10%, 
-                rgba(0,0,0,0.15) 20%, 
-                rgba(255,255,255,0.05) 50%, 
-                rgba(0,0,0,0.2) 85%, 
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0.18) 0%,
+                rgba(255,255,255,0) 10%,
+                rgba(0,0,0,0.15) 20%,
+                rgba(255,255,255,0.05) 50%,
+                rgba(0,0,0,0.2) 85%,
                 rgba(0,0,0,0.5) 100%);
             pointer-events: none;
             border-radius: inherit;
@@ -89,7 +89,7 @@
             box-shadow: -10px 25px 30px rgba(0,0,0,0.9), 0 0 20px rgba(217, 119, 6, 0.4);
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0a0502; }
         ::-webkit-scrollbar-thumb { background: #381805; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #52270c; }
@@ -100,18 +100,18 @@
     <div id="app" class="min-h-screen flex flex-col justify-between relative">
 
         <!-- Top Header Navigation Bar -->
-        <header class="w-full bg-black/70 backdrop-blur-md border-b border-amber-900/40 px-6 py-4 flex justify-between items-center z-20 sticky top-0 shadow-lg">
+        <header class="w-full bg-black/70 backdrop-blur-md border-b border-amber-900/40 px-4 md:px-6 py-4 flex justify-between items-center z-25 sticky top-0 shadow-lg">
             <div class="flex items-center space-x-3">
                 <div id="headerLogoBox" class="w-10 h-10 rounded-lg bg-amber-950 border border-amber-700/50 flex items-center justify-center shadow-md">
                     <i id="headerLogoIcon" class="fa-solid fa-book-bookmark text-amber-500 text-xl"></i>
                 </div>
                 <div>
-                    <h1 id="headerTitle" class="text-xl md:text-2xl font-bold font-cinzel tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600 bg-clip-text text-transparent">
+                    <h1 id="headerTitle" class="text-lg md:text-2xl font-bold font-cinzel tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600 bg-clip-text text-transparent">
                         RAPIST NIGGER
                     </h1>
                 </div>
             </div>
-            
+
             <div class="flex items-center space-x-3">
                 <button id="fullscreenBtn" onclick="toggleFullScreen()" class="p-2.5 px-4 rounded-lg bg-amber-950/70 hover:bg-amber-900 border border-amber-700/50 text-amber-200 transition-all duration-200 flex items-center space-x-2 text-sm font-medium shadow-md">
                     <i id="fullscreenIcon" class="fa-solid fa-expand text-amber-400"></i>
@@ -127,11 +127,11 @@
 
             <!-- Library Bookshelf Grid (8 Books Total) -->
             <div class="max-w-4xl mx-auto w-full space-y-12 py-4">
-                
+
                 <!-- Shelf Row 1 (4 Books) -->
                 <div class="relative">
-                    <div id="shelfRow1Container" class="cubby-container p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg">
-                        <div id="shelfRow1" class="w-full flex justify-around items-end px-2 shelf-container"></div>
+                    <div id="shelfRow1Container" class="cubby-container p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg overflow-x-auto">
+                        <div id="shelfRow1" class="w-full flex justify-start md:justify-around items-end px-2 shelf-container gap-4 md:gap-0 min-w-max md:min-w-0"></div>
                     </div>
                     <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4 mt-1">
                         <div class="w-full h-1 bg-amber-950/40"></div>
@@ -141,8 +141,8 @@
 
                 <!-- Shelf Row 2 (4 Books) -->
                 <div class="relative">
-                    <div id="shelfRow2Container" class="cubby-container p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg">
-                        <div id="shelfRow2" class="w-full flex justify-around items-end px-2 shelf-container"></div>
+                    <div id="shelfRow2Container" class="cubby-container p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg overflow-x-auto">
+                        <div id="shelfRow2" class="w-full flex justify-start md:justify-around items-end px-2 shelf-container gap-4 md:gap-0 min-w-max md:min-w-0"></div>
                     </div>
                     <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4 mt-1">
                         <div class="w-full h-1 bg-amber-950/40"></div>
@@ -154,27 +154,27 @@
         </main>
 
         <div id="readerView" class="fixed inset-0 bg-black z-50 hidden flex-col transition-all duration-300">
-            
+
             <!-- E-Reader Top Bar Navigation -->
-            <div id="readerHeader" class="w-full bg-zinc-950/90 backdrop-blur border-b border-zinc-900 px-6 py-2.5 flex justify-between items-center z-10">
-                <button onclick="closeReader()" class="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 flex items-center space-x-2 text-sm font-medium transition-all shadow">
+            <div id="readerHeader" class="w-full bg-zinc-950/90 backdrop-blur border-b border-zinc-900 px-4 md:px-6 py-2.5 flex justify-between items-center z-10 flex-wrap gap-2">
+                <button onclick="closeReader()" class="px-3 md:px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 flex items-center space-x-2 text-sm font-medium transition-all shadow">
                     <i class="fa-solid fa-arrow-left text-amber-500"></i>
                     <span>Shelf</span>
                 </button>
 
-                <div class="text-center px-4">
-                    <h3 id="readerTitle" class="font-cinzel text-base md:text-lg font-bold text-zinc-100 tracking-wider truncate max-w-xs md:max-w-md">Book Title</h3>
-                    <p id="readerAuthor" class="text-xs text-amber-500/80 font-sans tracking-wide">Author Name</p>
+                <div class="text-center px-2 flex-1 min-w-[150px]">
+                    <h3 id="readerTitle" class="font-cinzel text-sm md:text-lg font-bold text-zinc-100 tracking-wider truncate">Book Title</h3>
+                    <p id="readerAuthor" class="text-[10px] md:text-xs text-amber-500/80 font-sans tracking-wide">Author Name</p>
                 </div>
 
-                <div class="flex items-center space-x-3">
-                    <button id="viewModeBtn" onclick="toggleViewMode()" title="Toggle Single or Two-Page Spread" class="p-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-amber-400 text-sm font-medium transition-all flex items-center space-x-1.5 shadow">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <button id="viewModeBtn" onclick="toggleViewMode()" title="Toggle Single or Two-Page Spread" class="p-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-amber-400 text-sm font-medium transition-all hidden md:flex items-center space-x-1.5 shadow">
                         <i id="viewModeIcon" class="fa-solid fa-book-open"></i>
-                        <span id="viewModeText" class="hidden sm:inline text-xs">Spread</span>
+                        <span id="viewModeText" class="text-xs">Spread</span>
                     </button>
 
                     <!-- Zoom Controls -->
-                    <div class="flex items-center bg-zinc-900 rounded-lg border border-zinc-800 p-0.5 shadow">
+                    <div class="hidden md:flex items-center bg-zinc-900 rounded-lg border border-zinc-800 p-0.5 shadow">
                         <button onclick="zoomOut()" title="Zoom Out" class="p-2 px-2.5 hover:bg-zinc-800 text-amber-400 hover:text-amber-300 rounded-l-md transition-colors">
                             <i class="fa-solid fa-magnifying-glass-minus"></i>
                         </button>
@@ -187,22 +187,22 @@
                         </button>
                     </div>
 
-                    <button onclick="toggleReaderFullScreen()" title="Fullscreen Reader" class="p-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-amber-400 text-sm font-medium transition-all flex items-center space-x-1.5 shadow">
+                    <button onclick="toggleReaderFullScreen()" title="Fullscreen Reader" class="p-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-amber-400 text-sm font-medium transition-all hidden md:flex items-center space-x-1.5 shadow">
                         <i id="readerFsIcon" class="fa-solid fa-expand"></i>
-                        <span id="readerFsText" class="hidden sm:inline text-xs">Fullscreen</span>
+                        <span id="readerFsText" class="text-xs">Fullscreen</span>
                     </button>
 
-                    <div class="hidden md:flex items-center space-x-2 text-xs text-zinc-400 font-mono bg-zinc-900 px-3 py-1.5 rounded-md border border-zinc-800">
+                    <div class="flex items-center space-x-1 text-xs text-zinc-400 font-mono bg-zinc-900 px-2.5 py-1.5 rounded-md border border-zinc-800">
                         <i class="fa-solid fa-bookmark text-amber-500"></i>
-                        <span><span id="currentPageNum" class="text-zinc-100 font-bold">1</span> / <span id="totalPagesNum">50</span></span>
+                        <span><span id="currentPageNum" class="text-zinc-100 font-bold">1</span>/<span id="totalPagesNum">50</span></span>
                     </div>
                 </div>
             </div>
 
             <!-- Maximized Full-Bleed PDF Viewport -->
             <div id="readerCanvasContainer" class="flex-1 flex items-center justify-center p-0 m-0 relative overflow-auto select-none bg-black">
-                
-                <!-- Two-Page Spread View Container -->
+
+                <!-- Two-Page Spread View Container (Desktop) -->
                 <div id="spreadViewContainer" class="w-full h-full flex items-center justify-center bg-black transition-transform duration-200 origin-center">
                     <div id="leftPageWrapper" class="w-1/2 h-full flex items-center justify-end bg-black overflow-hidden pr-0">
                         <canvas id="pdfCanvasLeft" class="max-h-full max-w-full object-contain shadow-2xl"></canvas>
@@ -218,25 +218,30 @@
                     <canvas id="pdfCanvasSingle" class="max-h-full max-w-full object-contain shadow-2xl"></canvas>
                 </div>
 
-                <!-- Floating Navigation Arrows -->
-                <button onclick="prevPage()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/80 hover:bg-amber-600 border border-zinc-700/60 text-amber-400 hover:text-white flex items-center justify-center transition-all shadow-2xl z-20 group">
+                <!-- Vertical Scroll View Container (Mobile / Continuous) -->
+                <div id="verticalScrollViewContainer" class="w-full h-full hidden flex-col items-center overflow-y-auto py-6 px-2 space-y-6 bg-black transition-transform duration-200">
+                    <!-- Dynamic canvases injected here -->
+                </div>
+
+                <!-- Floating Navigation Arrows (Hidden in mobile vertical mode) -->
+                <button id="prevArrowBtn" onclick="prevPage()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/80 hover:bg-amber-600 border border-zinc-700/60 text-amber-400 hover:text-white flex items-center justify-center transition-all shadow-2xl z-20 group">
                     <i class="fa-solid fa-chevron-left text-xl group-hover:-translate-x-0.5 transition-transform"></i>
                 </button>
 
-                <button onclick="nextPage()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/80 hover:bg-amber-600 border border-zinc-700/60 text-amber-400 hover:text-white flex items-center justify-center transition-all shadow-2xl z-20 group">
+                <button id="nextArrowBtn" onclick="nextPage()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/80 hover:bg-amber-600 border border-zinc-700/60 text-amber-400 hover:text-white flex items-center justify-center transition-all shadow-2xl z-20 group">
                     <i class="fa-solid fa-chevron-right text-xl group-hover:translate-x-0.5 transition-transform"></i>
                 </button>
             </div>
 
             <!-- E-Reader Bottom Bar Navigation -->
-            <div id="readerFooterBar" class="w-full bg-zinc-950/90 backdrop-blur border-t border-zinc-900 px-6 py-2 flex flex-col md:flex-row items-center justify-between gap-2 z-10">
-                <div class="w-full md:w-2/3 flex items-center space-x-4">
+            <div id="readerFooterBar" class="w-full bg-zinc-950/90 backdrop-blur border-t border-zinc-900 px-4 md:px-6 py-2 flex flex-row items-center justify-between gap-4 z-10">
+                <div class="w-full flex items-center space-x-3">
                     <span class="text-xs text-zinc-500 font-mono">1</span>
                     <input type="range" id="pageSlider" min="1" max="50" value="1" oninput="onSliderChange(this.value)" class="w-full h-1.5 bg-zinc-900 rounded-lg appearance-none cursor-pointer accent-amber-600 focus:outline-none">
                     <span id="sliderMaxLabel" class="text-xs text-zinc-500 font-mono">50</span>
                 </div>
 
-                <div class="flex items-center space-x-3 text-xs">
+                <div class="hidden sm:flex items-center space-x-2 text-xs">
                     <button onclick="goToPage(1)" class="px-3 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-colors">First</button>
                     <button onclick="goToPage(currentBook ? currentBook.totalPages : 50)" class="px-3 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-colors">Last</button>
                 </div>
@@ -283,6 +288,10 @@
 
         const STORAGE_KEY = 'gentlemans_archive_progress_v8';
 
+        function isMobileDevice() {
+            return window.innerWidth < 768;
+        }
+
         function loadProgress() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
@@ -318,8 +327,8 @@
                 const savedPage = bookProgress ? bookProgress.page : 1;
 
                 const spine = document.createElement('div');
-                spine.className = `book-spine w-16 md:w-20 h-44 md:h-52 ${book.spineBg} border ${book.border} rounded-sm flex flex-col justify-between py-4 px-2 shadow-2xl`;
-                
+                spine.className = `book-spine w-16 md:w-20 h-44 md:h-52 ${book.spineBg} border ${book.border} rounded-sm flex flex-col justify-between py-4 px-2 shadow-2xl flex-shrink-0`;
+
                 spine.innerHTML = `
                     <div class="spine-ridge top-4"></div>
                     <div class="spine-ridge top-8"></div>
@@ -370,6 +379,7 @@
         function applyZoom() {
             const spreadContainer = document.getElementById('spreadViewContainer');
             const singleContainer = document.getElementById('singleViewContainer');
+            const verticalContainer = document.getElementById('verticalScrollViewContainer');
             const container = document.getElementById('readerCanvasContainer');
             const display = document.getElementById('zoomLevelDisplay');
 
@@ -378,17 +388,15 @@
             }
 
             const transformValue = `scale(${currentZoomScale})`;
-            
-            [spreadContainer, singleContainer].forEach(el => {
+
+            [spreadContainer, singleContainer, verticalContainer].forEach(el => {
                 if (el) {
                     el.style.transform = transformValue;
-                    // Switch transform-origin to top center so content expands downwards when zooming in
                     el.style.transformOrigin = currentZoomScale > 1.0 ? 'top center' : 'center center';
                 }
             });
 
             if (container) {
-                // Ensure flex alignment allows top scrolling when zoomed
                 if (currentZoomScale > 1.0) {
                     container.classList.remove('items-center');
                     container.classList.add('items-start');
@@ -408,7 +416,7 @@
             const progress = loadProgress();
             currentPage = (progress[bookId] && progress[bookId].page) ? progress[bookId].page : 1;
 
-            if (!isSinglePageView && currentPage % 2 === 0) {
+            if (!isMobileDevice() && !isSinglePageView && currentPage % 2 === 0) {
                 currentPage -= 1;
             }
             if (currentPage < 1) currentPage = 1;
@@ -460,7 +468,7 @@
             try {
                 const page = await pdfDoc.getPage(pageNum);
                 const viewportUnscaled = page.getViewport({ scale: 1 });
-                
+
                 const scaleX = containerWidth / viewportUnscaled.width;
                 const scaleY = containerHeight / viewportUnscaled.height;
                 const scale = Math.min(scaleX, scaleY) * 2.5;
@@ -492,16 +500,72 @@
             document.getElementById('currentPageNum').innerText = currentPage;
             document.getElementById('pageSlider').value = currentPage;
 
-            if (isSinglePageView) {
-                await renderCanvasPage(currentPage, 'pdfCanvasSingle', fullW, fullH);
+            const spreadContainer = document.getElementById('spreadViewContainer');
+            const singleContainer = document.getElementById('singleViewContainer');
+            const verticalContainer = document.getElementById('verticalScrollViewContainer');
+            const prevArrow = document.getElementById('prevArrowBtn');
+            const nextArrow = document.getElementById('nextArrowBtn');
+
+            if (isMobileDevice()) {
+                // Mobile View: Render all pages vertically stacked
+                spreadContainer.classList.add('hidden');
+                spreadContainer.classList.remove('flex');
+                singleContainer.classList.add('hidden');
+                singleContainer.classList.remove('flex');
+                verticalContainer.classList.remove('hidden');
+                verticalContainer.classList.add('flex');
+
+                // Hide floating arrows in continuous vertical mode
+                prevArrow.classList.add('hidden');
+                nextArrow.classList.add('hidden');
+
+                if (verticalContainer.children.length === 0 && pdfDoc) {
+                    verticalContainer.innerHTML = '';
+                    for (let i = 1; i <= pdfDoc.numPages; i++) {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'w-full flex justify-center mb-4';
+                        const canvas = document.createElement('canvas');
+                        canvas.id = `verticalCanvas-${i}`;
+                        canvas.className = 'max-w-full shadow-2xl rounded';
+                        wrapper.appendChild(canvas);
+                        verticalContainer.appendChild(wrapper);
+
+                        // Render each page for mobile stack
+                        const page = await pdfDoc.getPage(i);
+                        const viewportUnscaled = page.getViewport({ scale: 1 });
+                        const scale = (fullW / viewportUnscaled.width) * 2.0;
+                        const viewport = page.getViewport({ scale: scale });
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+                    }
+                }
             } else {
-                const halfW = Math.floor(fullW / 2);
-                await renderCanvasPage(currentPage, 'pdfCanvasLeft', halfW, fullH);
-                await renderCanvasPage(currentPage + 1, 'pdfCanvasRight', halfW, fullH);
+                prevArrow.classList.remove('hidden');
+                nextArrow.classList.remove('hidden');
+                verticalContainer.classList.add('hidden');
+                verticalContainer.classList.remove('flex');
+
+                if (isSinglePageView) {
+                    spreadContainer.classList.add('hidden');
+                    spreadContainer.classList.remove('flex');
+                    singleContainer.classList.remove('hidden');
+                    singleContainer.classList.add('flex');
+                    await renderCanvasPage(currentPage, 'pdfCanvasSingle', fullW, fullH);
+                } else {
+                    singleContainer.classList.add('hidden');
+                    singleContainer.classList.remove('flex');
+                    spreadContainer.classList.remove('hidden');
+                    spreadContainer.classList.add('flex');
+                    const halfW = Math.floor(fullW / 2);
+                    await renderCanvasPage(currentPage, 'pdfCanvasLeft', halfW, fullH);
+                    await renderCanvasPage(currentPage + 1, 'pdfCanvasRight', halfW, fullH);
+                }
             }
         }
 
         function toggleViewMode() {
+            if (isMobileDevice()) return; // Always vertical on mobile
             isSinglePageView = !isSinglePageView;
             const icon = document.getElementById('viewModeIcon');
             const text = document.getElementById('viewModeText');
@@ -532,6 +596,10 @@
             readerView.classList.add('hidden');
             readerView.classList.remove('flex');
 
+            // Clear vertical container cache so it re-renders cleanly on next open
+            const verticalContainer = document.getElementById('verticalScrollViewContainer');
+            if (verticalContainer) verticalContainer.innerHTML = '';
+
             if (document.fullscreenElement) {
                 document.exitFullscreen().catch(() => {});
             }
@@ -541,7 +609,7 @@
 
         async function nextPage() {
             if (!currentBook) return;
-            const step = isSinglePageView ? 1 : 2;
+            const step = (isMobileDevice() || isSinglePageView) ? 1 : 2;
             if (currentPage + step <= currentBook.totalPages) {
                 currentPage += step;
                 await updatePageSpread();
@@ -550,7 +618,7 @@
 
         async function prevPage() {
             if (!currentBook) return;
-            const step = isSinglePageView ? 1 : 2;
+            const step = (isMobileDevice() || isSinglePageView) ? 1 : 2;
             if (currentPage - step >= 1) {
                 currentPage -= step;
                 await updatePageSpread();
@@ -562,7 +630,7 @@
             let target = parseInt(page);
             if (isNaN(target)) return;
 
-            if (!isSinglePageView && target % 2 === 0) {
+            if (!isMobileDevice() && !isSinglePageView && target % 2 === 0) {
                 target -= 1;
             }
 
@@ -634,6 +702,11 @@
         window.addEventListener('resize', () => {
             const readerView = document.getElementById('readerView');
             if (readerView && readerView.classList.contains('flex')) {
+                // Clear mobile container on orientation change/resize to recalculate scales
+                const verticalContainer = document.getElementById('verticalScrollViewContainer');
+                if (verticalContainer && isMobileDevice()) {
+                    verticalContainer.innerHTML = '';
+                }
                 updatePageSpread();
             }
         });
