@@ -37,7 +37,7 @@
         }
         .wood-background {
             background-color: #120904;
-            background-image:
+            background-image: 
                 radial-gradient(circle at 50% 30%, rgba(70, 35, 12, 0.4) 0%, rgba(10, 5, 2, 0.95) 85%),
                 linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.8));
         }
@@ -65,12 +65,12 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(90deg,
-                rgba(255,255,255,0.18) 0%,
-                rgba(255,255,255,0) 10%,
-                rgba(0,0,0,0.15) 20%,
-                rgba(255,255,255,0.05) 50%,
-                rgba(0,0,0,0.2) 85%,
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.18) 0%, 
+                rgba(255,255,255,0) 10%, 
+                rgba(0,0,0,0.15) 20%, 
+                rgba(255,255,255,0.05) 50%, 
+                rgba(0,0,0,0.2) 85%, 
                 rgba(0,0,0,0.5) 100%);
             pointer-events: none;
             border-radius: inherit;
@@ -111,7 +111,7 @@
                     </h1>
                 </div>
             </div>
-
+            
             <div class="flex items-center space-x-3">
                 <button id="fullscreenBtn" onclick="toggleFullScreen()" class="p-2.5 px-4 rounded-lg bg-amber-950/70 hover:bg-amber-900 border border-amber-700/50 text-amber-200 transition-all duration-200 flex items-center space-x-2 text-sm font-medium shadow-md">
                     <i id="fullscreenIcon" class="fa-solid fa-expand text-amber-400"></i>
@@ -127,11 +127,11 @@
 
             <!-- Library Bookshelf Grid (8 Books Total) -->
             <div class="max-w-4xl mx-auto w-full space-y-12 py-4">
-
+                
                 <!-- Shelf Row 1 (4 Books) -->
                 <div class="relative">
-                    <div id="shelfRow1Container" class="cubby-container p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg overflow-x-auto">
-                        <div id="shelfRow1" class="w-full flex justify-start md:justify-around items-end px-2 shelf-container gap-4 md:gap-0 min-w-max md:min-w-0"></div>
+                    <div id="shelfRow1Container" class="cubby-container p-4 md:p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg">
+                        <div id="shelfRow1" class="w-full flex flex-wrap justify-center sm:justify-around items-end px-1 sm:px-2 shelf-container gap-3 sm:gap-4 md:gap-0"></div>
                     </div>
                     <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4 mt-1">
                         <div class="w-full h-1 bg-amber-950/40"></div>
@@ -141,8 +141,8 @@
 
                 <!-- Shelf Row 2 (4 Books) -->
                 <div class="relative">
-                    <div id="shelfRow2Container" class="cubby-container p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg overflow-x-auto">
-                        <div id="shelfRow2" class="w-full flex justify-start md:justify-around items-end px-2 shelf-container gap-4 md:gap-0 min-w-max md:min-w-0"></div>
+                    <div id="shelfRow2Container" class="cubby-container p-4 md:p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg">
+                        <div id="shelfRow2" class="w-full flex flex-wrap justify-center sm:justify-around items-end px-1 sm:px-2 shelf-container gap-3 sm:gap-4 md:gap-0"></div>
                     </div>
                     <div class="wood-shelf h-8 w-full rounded-sm flex items-center justify-between px-4 mt-1">
                         <div class="w-full h-1 bg-amber-950/40"></div>
@@ -154,7 +154,7 @@
         </main>
 
         <div id="readerView" class="fixed inset-0 bg-black z-50 hidden flex-col transition-all duration-300">
-
+            
             <!-- E-Reader Top Bar Navigation -->
             <div id="readerHeader" class="w-full bg-zinc-950/90 backdrop-blur border-b border-zinc-900 px-4 md:px-6 py-2.5 flex justify-between items-center z-10 flex-wrap gap-2">
                 <button onclick="closeReader()" class="px-3 md:px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 flex items-center space-x-2 text-sm font-medium transition-all shadow">
@@ -201,7 +201,7 @@
 
             <!-- Maximized Full-Bleed PDF Viewport -->
             <div id="readerCanvasContainer" class="flex-1 flex items-center justify-center p-0 m-0 relative overflow-auto select-none bg-black">
-
+                
                 <!-- Two-Page Spread View Container (Desktop) -->
                 <div id="spreadViewContainer" class="w-full h-full flex items-center justify-center bg-black transition-transform duration-200 origin-center">
                     <div id="leftPageWrapper" class="w-1/2 h-full flex items-center justify-end bg-black overflow-hidden pr-0">
@@ -233,15 +233,15 @@
                 </button>
             </div>
 
-            <!-- E-Reader Bottom Bar Navigation -->
-            <div id="readerFooterBar" class="w-full bg-zinc-950/90 backdrop-blur border-t border-zinc-900 px-4 md:px-6 py-2 flex flex-row items-center justify-between gap-4 z-10">
+            <!-- E-Reader Bottom Bar Navigation (Hidden on Mobile) -->
+            <div id="readerFooterBar" class="w-full bg-zinc-950/90 backdrop-blur border-t border-zinc-900 px-4 md:px-6 py-2 hidden md:flex flex-row items-center justify-between gap-4 z-10">
                 <div class="w-full flex items-center space-x-3">
                     <span class="text-xs text-zinc-500 font-mono">1</span>
                     <input type="range" id="pageSlider" min="1" max="50" value="1" oninput="onSliderChange(this.value)" class="w-full h-1.5 bg-zinc-900 rounded-lg appearance-none cursor-pointer accent-amber-600 focus:outline-none">
                     <span id="sliderMaxLabel" class="text-xs text-zinc-500 font-mono">50</span>
                 </div>
 
-                <div class="hidden sm:flex items-center space-x-2 text-xs">
+                <div class="flex items-center space-x-2 text-xs">
                     <button onclick="goToPage(1)" class="px-3 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-colors">First</button>
                     <button onclick="goToPage(currentBook ? currentBook.totalPages : 50)" class="px-3 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-colors">Last</button>
                 </div>
@@ -327,16 +327,17 @@
                 const savedPage = bookProgress ? bookProgress.page : 1;
 
                 const spine = document.createElement('div');
-                spine.className = `book-spine w-16 md:w-20 h-44 md:h-52 ${book.spineBg} border ${book.border} rounded-sm flex flex-col justify-between py-4 px-2 shadow-2xl flex-shrink-0`;
-
+                // Responsive width/height so books fit cleanly without overflow issues on smaller screens
+                spine.className = `book-spine w-14 sm:w-16 md:w-20 h-40 sm:h-44 md:h-52 ${book.spineBg} border ${book.border} rounded-sm flex flex-col justify-between py-3 px-1.5 sm:px-2 shadow-2xl flex-shrink-0`;
+                
                 spine.innerHTML = `
                     <div class="spine-ridge top-4"></div>
                     <div class="spine-ridge top-8"></div>
                     <div class="text-center">
-                        <span class="font-cinzel text-[10px] md:text-xs font-black tracking-widest ${book.textCol} drop-shadow">R.N</span>
+                        <span class="font-cinzel text-[9px] sm:text-[10px] md:text-xs font-black tracking-widest ${book.textCol} drop-shadow">R.N</span>
                     </div>
                     <div class="flex-1 flex items-center justify-center py-2">
-                        <span class="spine-text-vertical font-cinzel text-xs md:text-sm font-bold tracking-widest ${book.textCol} truncate max-h-36 drop-shadow">
+                        <span class="spine-text-vertical font-cinzel text-[11px] sm:text-xs md:text-sm font-bold tracking-widest ${book.textCol} truncate max-h-32 sm:max-h-36 drop-shadow">
                             ${book.title}
                         </span>
                     </div>
@@ -388,7 +389,7 @@
             }
 
             const transformValue = `scale(${currentZoomScale})`;
-
+            
             [spreadContainer, singleContainer, verticalContainer].forEach(el => {
                 if (el) {
                     el.style.transform = transformValue;
@@ -468,7 +469,7 @@
             try {
                 const page = await pdfDoc.getPage(pageNum);
                 const viewportUnscaled = page.getViewport({ scale: 1 });
-
+                
                 const scaleX = containerWidth / viewportUnscaled.width;
                 const scaleY = containerHeight / viewportUnscaled.height;
                 const scale = Math.min(scaleX, scaleY) * 2.5;
@@ -514,7 +515,7 @@
                 singleContainer.classList.remove('flex');
                 verticalContainer.classList.remove('hidden');
                 verticalContainer.classList.add('flex');
-
+                
                 // Hide floating arrows in continuous vertical mode
                 prevArrow.classList.add('hidden');
                 nextArrow.classList.add('hidden');
@@ -702,7 +703,6 @@
         window.addEventListener('resize', () => {
             const readerView = document.getElementById('readerView');
             if (readerView && readerView.classList.contains('flex')) {
-                // Clear mobile container on orientation change/resize to recalculate scales
                 const verticalContainer = document.getElementById('verticalScrollViewContainer');
                 if (verticalContainer && isMobileDevice()) {
                     verticalContainer.innerHTML = '';
