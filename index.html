@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R.N</title>
+    <title>The Archive Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -184,10 +184,9 @@
                         <span>Shelf</span>
                     </button>
 
-                    <!-- Chapter Sidebar Toggle Button -->
-                    <button id="tocToggleBtn" onclick="toggleChapterSidebar()" title="Index & Content Table of Contents" class="hidden px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-zinc-800 items-center space-x-2 text-sm font-medium transition-all shadow">
+                    <!-- Chapter Sidebar Toggle Button (Icon Only) -->
+                    <button id="tocToggleBtn" onclick="toggleChapterSidebar()" title="Index & Content" class="hidden px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-zinc-800 items-center justify-center text-sm font-medium transition-all shadow">
                         <i class="fa-solid fa-list-ul"></i>
-                        <span class="hidden sm:inline">Index &amp; Content</span>
                     </button>
                 </div>
 
@@ -242,7 +241,7 @@
                     <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
                         <h4 class="font-cinzel text-amber-400 font-bold text-sm tracking-wider flex items-center space-x-2">
                             <i class="fa-solid fa-list-ul"></i>
-                            <span>Index &amp; Content</span>
+                            <span>Navigation</span>
                         </h4>
                         <button onclick="toggleChapterSidebar()" class="text-zinc-400 hover:text-white text-sm p-1">
                             <i class="fa-solid fa-xmark"></i>
@@ -602,6 +601,12 @@
                 tocContainer.innerHTML = '';
 
                 epubBookInstance.loaded.navigation.then(function(nav) {
+                    // Add "Index & Content" header heading above chapter list items
+                    const headerHeading = document.createElement('div');
+                    headerHeading.className = "px-3 py-2.5 font-cinzel text-amber-500 font-bold text-xs tracking-wider uppercase border-b border-zinc-800 bg-zinc-950/60 mb-2";
+                    headerHeading.innerText = "Index & Content";
+                    tocContainer.appendChild(headerHeading);
+
                     if (nav.toc && nav.toc.length > 0) {
                         nav.toc.forEach(function(chapter) {
                             const btn = document.createElement('button');
@@ -614,7 +619,10 @@
                             tocContainer.appendChild(btn);
                         });
                     } else {
-                        tocContainer.innerHTML = '<div class="text-zinc-500 text-center py-6">No chapters listed in EPUB.</div>';
+                        const emptyDiv = document.createElement('div');
+                        emptyDiv.className = "text-zinc-500 text-center py-6";
+                        emptyDiv.innerText = "No chapters listed in EPUB.";
+                        tocContainer.appendChild(emptyDiv);
                     }
                 });
 
