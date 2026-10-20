@@ -531,11 +531,11 @@
 
                 epubBookInstance = ePub(currentBook.epubPath);
                 
-                // Use scrolled-doc flow to combine all sections into one unified continuous stream
+                // Use scrolled flow to sequence cover page through all chapters in a single scrollable stream
                 epubRendition = epubBookInstance.renderTo("epubViewerArea", {
                     width: "100%",
                     height: "100%",
-                    flow: "scrolled-doc",
+                    flow: "scrolled",
                     allowScriptedContent: true
                 });
 
