@@ -90,8 +90,8 @@
             box-shadow: -10px 25px 30px rgba(0,0,0,0.9), 0 0 20px rgba(217, 119, 6, 0.4);
         }
 
-        /* Hide scrollbars completely across all ePub containers, views, and generated dynamic iframe components */
-        #epubContainer, #epubViewerArea, [id^="epubjs-container-"], .epub-container, .epub-view {
+        /* Prevent side clipping and enable unified smooth vertical scrolling for EPUB containers */
+        #epubContainer, #epubViewerArea, [id^="epubjs-container-"], .epub-container {
             overflow-x: hidden !important;
             overflow-y: auto !important;
             max-width: 100% !important;
@@ -105,8 +105,7 @@
         #epubContainer::-webkit-scrollbar,
         #epubViewerArea::-webkit-scrollbar,
         [id^="epubjs-container-"]::-webkit-scrollbar,
-        .epub-container::-webkit-scrollbar,
-        .epub-view::-webkit-scrollbar {
+        .epub-container::-webkit-scrollbar {
             display: none !important;
             width: 0px !important;
             height: 0px !important;
