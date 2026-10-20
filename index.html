@@ -608,7 +608,7 @@
                     // Context Button (Jumps to front matter / spine 0)
                     const contextBtn = document.createElement('button');
                     contextBtn.className = "w-full text-left px-3 py-2.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 font-semibold transition-colors flex items-center space-x-2 border-b border-zinc-800 text-xs";
-                    contextBtn.innerHTML = '<i class="fa-solid fa-file-lines text-amber-500"></i><span>Context (Above Ch. 1)</span>';
+                    contextBtn.innerHTML = '<i class="fa-solid fa-file-lines text-amber-500"></i><span>Context</span>';
                     contextBtn.onclick = () => {
                         if (epubBookInstance.spine && epubBookInstance.spine.get(0)) {
                             epubRendition.display(epubBookInstance.spine.get(0).href);
