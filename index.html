@@ -602,7 +602,7 @@
                     // Explicitly search for "CONTENTS" (or variants) while avoiding any chapter names
                     let tocItem = tocItems.find(item => {
                         const label = (item.label || '').toLowerCase().trim();
-                        return label.includes('CONTENTS') && !label.includes('1 The day a rapist was born 5');
+                        return label.includes('CONTENTS') && !label.includes('CONTENTS');
                     });
 
                     if (!tocItem) {
