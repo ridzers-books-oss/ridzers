@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R.N</title>
+    <title>The Archive Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -90,18 +90,26 @@
             box-shadow: -10px 25px 30px rgba(0,0,0,0.9), 0 0 20px rgba(217, 119, 6, 0.4);
         }
 
-        #epubContainer, #epubViewerArea, [id^="epubjs-container-"] {
+        /* Hide scrollbars completely across all ePub containers, views, and generated dynamic iframe components */
+        #epubContainer, #epubViewerArea, [id^="epubjs-container-"], .epub-container, .epub-view {
             overflow-x: hidden !important;
             overflow-y: auto !important;
             max-width: 100% !important;
             width: 100% !important;
             height: 100% !important;
             box-sizing: border-box !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
         }
         
         #epubContainer::-webkit-scrollbar,
-        #epubViewerArea::-webkit-scrollbar {
-            width: 6px;
+        #epubViewerArea::-webkit-scrollbar,
+        [id^="epubjs-container-"]::-webkit-scrollbar,
+        .epub-container::-webkit-scrollbar,
+        .epub-view::-webkit-scrollbar {
+            display: none !important;
+            width: 0px !important;
+            height: 0px !important;
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -524,7 +532,6 @@
 
                 epubBookInstance = ePub(currentBook.epubPath);
                 
-                // Set flow to scroll layout across the entire book document
                 epubRendition = epubBookInstance.renderTo("epubViewerArea", {
                     width: "100%",
                     height: "100%",
@@ -589,6 +596,13 @@
                                 overflow-x: hidden !important;
                                 max-width: 100% !important;
                                 box-sizing: border-box !important;
+                                scrollbar-width: none !important;
+                                -ms-overflow-style: none !important;
+                            }
+                            body::-webkit-scrollbar, html::-webkit-scrollbar {
+                                display: none !important;
+                                width: 0px !important;
+                                height: 0px !important;
                             }
                         `;
                         doc.head.appendChild(style);
@@ -600,19 +614,6 @@
 
                 epubBookInstance.loaded.navigation.then(function(nav) {
                     const tocItems = nav.toc || [];
-
-                    // Explicitly search for "CONTENTS" (case-insensitive) avoiding chapters
-                    let tocItem = tocItems.find(item => {
-                        const label = (item.label || '').toUpperCase().trim();
-                        return label.includes('CONTENTS') && !label.includes('CHAPTER');
-                    });
-
-                    if (!tocItem) {
-                        tocItem = tocItems.find(item => {
-                            const label = (item.label || '').toUpperCase().trim();
-                            return (label.includes('TABLE') || label.includes('INDEX')) && !label.includes('CHAPTER');
-                        }) || (tocItems.length > 1 ? tocItems[1] : tocItems[0]);
-                    }
 
                     // Context Button
                     const contextBtn = document.createElement('button');
@@ -627,22 +628,6 @@
                         toggleChapterSidebar();
                     };
                     tocContainer.appendChild(contextBtn);
-
-                    // Table of Contents Button (Labeled CONTENTS, avoids chapters)
-                    const indexBtn = document.createElement('button');
-                    indexBtn.className = "w-full text-left px-3 py-2.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 font-semibold transition-colors flex items-center space-x-2 border-b border-zinc-800 mb-2 text-xs";
-                    indexBtn.innerHTML = '<i class="fa-solid fa-list-check text-amber-500"></i><span>CONTENTS</span>';
-                    indexBtn.onclick = () => {
-                        if (tocItem && tocItem.href) {
-                            epubRendition.display(tocItem.href);
-                        } else if (epubBookInstance.spine && epubBookInstance.spine.get(1)) {
-                            epubRendition.display(epubBookInstance.spine.get(1).href);
-                        } else {
-                            epubRendition.display(0);
-                        }
-                        toggleChapterSidebar();
-                    };
-                    tocContainer.appendChild(indexBtn);
 
                     const chHeader = document.createElement('div');
                     chHeader.className = "px-3 py-1 font-cinzel text-zinc-400 font-bold text-[10px] tracking-widest uppercase mt-2 mb-1";
