@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R.N</title>
+    <title>The Archive Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -500,7 +500,6 @@
                 if (footerBar) footerBar.classList.add('hidden'), footerBar.classList.remove('md:flex');
                 if (tocBtn) tocBtn.classList.remove('hidden'), tocBtn.classList.add('flex');
                 
-                // Hide arrow buttons since EPUB scroll mode uses vertical scrolling
                 if (prevArrow && nextArrow) {
                     prevArrow.classList.add('hidden');
                     nextArrow.classList.add('hidden');
@@ -543,7 +542,6 @@
 
                 epubBookInstance = ePub(currentBook.epubPath);
                 
-                // Use scrollable doc flow mode for both desktop and mobile EPUB viewing
                 const epubFlowMode = "scrolled-doc";
 
                 epubRendition = epubBookInstance.renderTo("epubViewerArea", {
@@ -598,7 +596,16 @@
                 tocContainer.innerHTML = '';
 
                 epubBookInstance.loaded.navigation.then(function(nav) {
-                    // Context Button (Jumps to text above Chapter 1 / front matter)
+                    const tocItems = nav.toc || [];
+                    
+                    // Identify Chapter 1 index or fallback
+                    let ch1Index = tocItems.findIndex(item => item.label.toLowerCase().includes('chapter 1') || item.label.toLowerCase().includes('1.'));
+                    if (ch1Index === -1 && tocItems.length > 0) ch1Index = 1;
+
+                    // The item right above Chapter 1 and under Context is the Table of Contents item
+                    const tableOfContentsItem = (ch1Index > 0 && ch1Index < tocItems.length) ? tocItems[ch1Index - 1] : (tocItems.length > 1 ? tocItems[1] : tocItems[0]);
+
+                    // Context Button (Jumps to front matter / spine 0)
                     const contextBtn = document.createElement('button');
                     contextBtn.className = "w-full text-left px-3 py-2.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 font-semibold transition-colors flex items-center space-x-2 border-b border-zinc-800 text-xs";
                     contextBtn.innerHTML = '<i class="fa-solid fa-file-lines text-amber-500"></i><span>Context (Above Ch. 1)</span>';
@@ -612,20 +619,17 @@
                     };
                     tocContainer.appendChild(contextBtn);
 
-                    // Index Button (Shows everything above / index section)
+                    // Index Button (Jumps to the Table of Contents item right above Chapter 1)
                     const indexBtn = document.createElement('button');
                     indexBtn.className = "w-full text-left px-3 py-2.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 font-semibold transition-colors flex items-center space-x-2 border-b border-zinc-800 mb-2 text-xs";
-                    indexBtn.innerHTML = '<i class="fa-solid fa-list-check text-amber-500"></i><span>Index</span>';
+                    indexBtn.innerHTML = '<i class="fa-solid fa-list-check text-amber-500"></i><span>Index (Table of Contents)</span>';
                     indexBtn.onclick = () => {
-                        let targetHref = null;
-                        if (nav.toc) {
-                            const indexItem = nav.toc.find(item => item.label.toLowerCase().includes('index') || item.label.toLowerCase().includes('contents'));
-                            if (indexItem) targetHref = indexItem.href;
-                        }
-                        if (targetHref) {
-                            epubRendition.display(targetHref);
-                        } else if (epubBookInstance.spine && epubBookInstance.spine.get(0)) {
-                            epubRendition.display(epubBookInstance.spine.get(0).href);
+                        if (tableOfContentsItem && tableOfContentsItem.href) {
+                            epubRendition.display(tableOfContentsItem.href);
+                        } else if (tocItems.length > 1) {
+                            epubRendition.display(tocItems[1].href);
+                        } else {
+                            epubRendition.display(0);
                         }
                         toggleChapterSidebar();
                     };
@@ -637,8 +641,8 @@
                     chHeader.innerText = "Chapters";
                     tocContainer.appendChild(chHeader);
 
-                    if (nav.toc && nav.toc.length > 0) {
-                        nav.toc.forEach(function(chapter) {
+                    if (tocItems.length > 0) {
+                        tocItems.forEach(function(chapter) {
                             const btn = document.createElement('button');
                             btn.className = "w-full text-left px-3 py-2 rounded hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 transition-colors truncate border-b border-zinc-800/50";
                             btn.innerText = chapter.label.trim() || 'Untitled Chapter';
