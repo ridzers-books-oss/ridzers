@@ -185,9 +185,9 @@
                     </button>
 
                     <!-- Chapter Sidebar Toggle Button -->
-                    <button id="tocToggleBtn" onclick="toggleChapterSidebar()" title="Chapters Table of Contents" class="hidden px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-zinc-800 items-center space-x-2 text-sm font-medium transition-all shadow">
+                    <button id="tocToggleBtn" onclick="toggleChapterSidebar()" title="Index & Content Table of Contents" class="hidden px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-zinc-800 items-center space-x-2 text-sm font-medium transition-all shadow">
                         <i class="fa-solid fa-list-ul"></i>
-                        <span class="hidden sm:inline">Chapters</span>
+                        <span class="hidden sm:inline">Index &amp; Content</span>
                     </button>
                 </div>
 
@@ -208,7 +208,7 @@
                         <span id="viewModeText" class="text-xs">Spread</span>
                     </button>
 
-                    <!-- Zoom Controls -->
+                    <!-- Zoom Controls (Explicitly Hidden in EPUB Mode) -->
                     <div id="zoomControls" class="hidden md:flex items-center bg-zinc-900 rounded-lg border border-zinc-800 p-0.5 shadow">
                         <button onclick="zoomOut()" title="Zoom Out" class="p-2 px-2.5 hover:bg-zinc-800 text-amber-400 hover:text-amber-300 rounded-l-md transition-colors">
                             <i class="fa-solid fa-magnifying-glass-minus"></i>
@@ -241,15 +241,15 @@
                 <div id="chapterSidebar" class="absolute left-0 top-0 bottom-0 w-64 md:w-80 bg-zinc-900 border-r border-zinc-800 shadow-2xl z-40 transform -translate-x-full transition-transform duration-300 flex flex-col">
                     <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
                         <h4 class="font-cinzel text-amber-400 font-bold text-sm tracking-wider flex items-center space-x-2">
-                            <i class="fa-solid fa-list-ol"></i>
-                            <span>Table of Contents</span>
+                            <i class="fa-solid fa-list-ul"></i>
+                            <span>Index &amp; Content</span>
                         </h4>
                         <button onclick="toggleChapterSidebar()" class="text-zinc-400 hover:text-white text-sm p-1">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
                     <div id="chapterListContainer" class="flex-1 overflow-y-auto p-2 space-y-1 text-xs font-sans">
-                        <div class="text-zinc-500 text-center py-6">Loading chapters...</div>
+                        <div class="text-zinc-500 text-center py-6">Loading contents...</div>
                     </div>
                 </div>
 
@@ -494,9 +494,11 @@
             if (currentFormat === 'epub') {
                 btnText.innerText = "EPUB";
                 btnIcon.className = "fa-solid fa-book-bookmark text-amber-400";
-                if (zoomControls) zoomControls.classList.add('hidden');
-                if (viewModeBtn) viewModeBtn.classList.add('hidden');
-                if (footerBar) footerBar.classList.add('hidden');
+                
+                // Hide PDF-specific controls (Zoom, View Mode, Footer Slider) in EPUB view
+                if (zoomControls) zoomControls.classList.add('hidden'), zoomControls.classList.remove('md:flex');
+                if (viewModeBtn) viewModeBtn.classList.add('hidden'), viewModeBtn.classList.remove('md:flex');
+                if (footerBar) footerBar.classList.add('hidden'), footerBar.classList.remove('md:flex');
                 if (tocBtn) tocBtn.classList.remove('hidden'), tocBtn.classList.add('flex');
                 
                 if (prevArrow && nextArrow) {
@@ -511,9 +513,11 @@
             } else {
                 btnText.innerText = "PDF";
                 btnIcon.className = "fa-solid fa-file-pdf text-amber-400";
-                if (zoomControls && !isMobileDevice()) zoomControls.classList.remove('hidden');
-                if (viewModeBtn && !isMobileDevice()) viewModeBtn.classList.remove('hidden');
-                if (footerBar && !isMobileDevice()) footerBar.classList.remove('hidden');
+                
+                // Restore controls for PDF view on desktop
+                if (zoomControls && !isMobileDevice()) zoomControls.classList.remove('hidden'), zoomControls.classList.add('md:flex');
+                if (viewModeBtn && !isMobileDevice()) viewModeBtn.classList.remove('hidden'), viewModeBtn.classList.add('md:flex');
+                if (footerBar && !isMobileDevice()) footerBar.classList.remove('hidden'), footerBar.classList.add('md:flex');
                 if (tocBtn) tocBtn.classList.add('hidden'), tocBtn.classList.remove('flex');
                 if (prevArrow && !isMobileDevice()) prevArrow.classList.remove('hidden');
                 if (nextArrow && !isMobileDevice()) nextArrow.classList.remove('hidden');
@@ -553,7 +557,6 @@
                     allowScriptedContent: true
                 });
 
-                // Inject CSS into rendition themes to explicitly hide scrollbars and prevent horizontal scrolling inside iframe elements
                 epubRendition.themes.default({
                     'body': {
                         'background': '#ffffff !important',
@@ -576,7 +579,6 @@
 
                 await epubRendition.display();
 
-                // Also inject direct stylesheet into generated iframe contents when hooks are triggered
                 epubRendition.hooks.content.register(function(contents) {
                     const doc = contents.document;
                     if (doc) {
