@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Archive Library</title>
+    <title>R.N</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -599,29 +599,22 @@
                 epubBookInstance.loaded.navigation.then(function(nav) {
                     const tocItems = nav.toc || [];
 
-                    // Explicitly search for a dedicated Table of Contents item in TOC
+                    // Explicitly search for a dedicated Table of Contents item matching keywords
                     let tocItem = tocItems.find(item => {
                         const label = (item.label || '').toLowerCase().trim();
-                        return label === 'table of contents' || label === 'contents' || label === 'index' || label === 'toc';
+                        return label.includes('table of contents') || label === 'contents' || label === 'index' || label === 'toc';
                     });
 
-                    // If not explicitly named, identify Chapter 1 and pick the item immediately preceding it
+                    // Fallback to spine or front matter item if label doesn't match directly
                     if (!tocItem) {
-                        let ch1Idx = tocItems.findIndex(item => {
+                        let nonChapterItems = tocItems.filter(item => {
                             const label = (item.label || '').toLowerCase();
-                            return label.includes('chapter 1') || label.includes('chapter i') || label.trim().startsWith('1.');
+                            return !label.includes('chapter');
                         });
-
-                        if (ch1Idx > 0) {
-                            tocItem = tocItems[ch1Idx - 1];
-                        } else if (tocItems.length > 1) {
-                            tocItem = tocItems[1];
-                        } else if (tocItems.length > 0) {
-                            tocItem = tocItems[0];
-                        }
+                        tocItem = nonChapterItems.length > 0 ? nonChapterItems[nonChapterItems.length - 1] : (tocItems.length > 0 ? tocItems[0] : null);
                     }
 
-                    // Context Button (Front Matter / First Spine Document)
+                    // Context Button (Loads front matter / spine item 0)
                     const contextBtn = document.createElement('button');
                     contextBtn.className = "w-full text-left px-3 py-2.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 font-semibold transition-colors flex items-center space-x-2 border-b border-zinc-800 text-xs";
                     contextBtn.innerHTML = '<i class="fa-solid fa-file-lines text-amber-500"></i><span>Context</span>';
@@ -635,7 +628,7 @@
                     };
                     tocContainer.appendChild(contextBtn);
 
-                    // Table of Contents Button
+                    // Table of Contents Button (Guaranteed not to show Chapter or Chapter 2)
                     const indexBtn = document.createElement('button');
                     indexBtn.className = "w-full text-left px-3 py-2.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 font-semibold transition-colors flex items-center space-x-2 border-b border-zinc-800 mb-2 text-xs";
                     indexBtn.innerHTML = '<i class="fa-solid fa-list-check text-amber-500"></i><span>Table of Contents</span>';
