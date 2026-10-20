@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R.N</title>
+    <title>The Archive Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -599,22 +599,20 @@
                 epubBookInstance.loaded.navigation.then(function(nav) {
                     const tocItems = nav.toc || [];
 
-                    // Explicitly search for a dedicated Table of Contents item matching keywords
+                    // Explicitly search for "CONTENTS" (or variants) while avoiding any chapter names
                     let tocItem = tocItems.find(item => {
                         const label = (item.label || '').toLowerCase().trim();
-                        return label.includes('table of contents') || label === 'contents' || label === 'index' || label === 'toc';
+                        return label.includes('contents') && !label.includes('chapter');
                     });
 
-                    // Fallback to spine or front matter item if label doesn't match directly
                     if (!tocItem) {
-                        let nonChapterItems = tocItems.filter(item => {
-                            const label = (item.label || '').toLowerCase();
-                            return !label.includes('chapter');
-                        });
-                        tocItem = nonChapterItems.length > 0 ? nonChapterItems[nonChapterItems.length - 1] : (tocItems.length > 0 ? tocItems[0] : null);
+                        tocItem = tocItems.find(item => {
+                            const label = (item.label || '').toLowerCase().trim();
+                            return (label.includes('table') || label.includes('index')) && !label.includes('chapter');
+                        }) || (tocItems.length > 1 ? tocItems[1] : tocItems[0]);
                     }
 
-                    // Context Button (Loads front matter / spine item 0)
+                    // Context Button
                     const contextBtn = document.createElement('button');
                     contextBtn.className = "w-full text-left px-3 py-2.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 font-semibold transition-colors flex items-center space-x-2 border-b border-zinc-800 text-xs";
                     contextBtn.innerHTML = '<i class="fa-solid fa-file-lines text-amber-500"></i><span>Context</span>';
@@ -628,7 +626,7 @@
                     };
                     tocContainer.appendChild(contextBtn);
 
-                    // Table of Contents Button (Guaranteed not to show Chapter or Chapter 2)
+                    // Table of Contents Button (Searches for CONTENTS and excludes chapter entries)
                     const indexBtn = document.createElement('button');
                     indexBtn.className = "w-full text-left px-3 py-2.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 font-semibold transition-colors flex items-center space-x-2 border-b border-zinc-800 mb-2 text-xs";
                     indexBtn.innerHTML = '<i class="fa-solid fa-list-check text-amber-500"></i><span>Table of Contents</span>';
