@@ -94,12 +94,11 @@
         }
 
         /* Hide Scrollbars and Lock Horizontal Overflow for EPUB Containers */
-        #epubContainer, #epubViewerArea, iframe {
+        #epubContainer, #epubViewerArea {
             overflow-x: hidden !important;
             max-width: 100% !important;
         }
         
-        /* Hide scrollbars for WebKit and Firefox */
         #epubContainer::-webkit-scrollbar,
         #epubViewerArea::-webkit-scrollbar {
             display: none;
@@ -271,7 +270,7 @@
                     <!-- Dynamic canvases injected here -->
                 </div>
 
-                <!-- EPUB View Container (White Background Theme with Smooth Mobile Scrolling & No Scrollbar) -->
+                <!-- EPUB View Container -->
                 <div id="epubContainer" class="w-full h-full hidden bg-white text-zinc-900 relative flex items-center justify-center overflow-y-auto overflow-x-hidden transition-colors duration-300">
                     <div id="epubViewerArea" class="w-full h-full max-w-4xl mx-auto p-4 md:p-8 overflow-x-hidden"></div>
                 </div>
@@ -550,7 +549,6 @@
                     allowScriptedContent: true
                 });
 
-                // Apply custom styles to eliminate horizontal overflow inside the rendition iframe
                 epubRendition.themes.default({
                     'body': {
                         'background': '#ffffff !important',
@@ -809,3 +807,109 @@
             if (!currentBook) return;
             const step = (isMobileDevice() || isSinglePageView) ? 1 : 2;
             if (currentPage + step <= currentBook.totalPages) {
+                currentPage += step;
+                await updatePageSpread();
+            }
+        }
+
+        async function prevPage() {
+            if (currentFormat === 'epub' && epubRendition) {
+                epubRendition.prev();
+                return;
+            }
+            if (!currentBook) return;
+            const step = (isMobileDevice() || isSinglePageView) ? 1 : 2;
+            if (currentPage - step >= 1) {
+                currentPage -= step;
+                await updatePageSpread();
+            }
+        }
+
+        async function goToPage(page) {
+            if (!currentBook || currentFormat === 'epub') return;
+            let target = parseInt(page);
+            if (isNaN(target)) return;
+
+            if (!isMobileDevice() && !isSinglePageView && target % 2 === 0) {
+                target -= 1;
+            }
+
+            if (target < 1) target = 1;
+            if (target > currentBook.totalPages) target = currentBook.totalPages;
+
+            currentPage = target;
+            await updatePageSpread();
+        }
+
+        async function onSliderChange(val) {
+            await goToPage(parseInt(val));
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error("Fullscreen error:", err);
+                });
+                document.getElementById('fullscreenIcon').className = "fa-solid fa-compress text-amber-400";
+                document.getElementById('fullscreenText').innerText = "Exit Fullscreen";
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                document.getElementById('fullscreenIcon').className = "fa-solid fa-expand text-amber-400";
+                document.getElementById('fullscreenText').innerText = "Fullscreen";
+            }
+        }
+
+        function toggleReaderFullScreen() {
+            const readerView = document.getElementById('readerView');
+            if (!document.fullscreenElement) {
+                readerView.requestFullscreen().catch(err => {
+                    console.error("Reader fullscreen error:", err);
+                });
+                document.getElementById('readerFsIcon').className = "fa-solid fa-compress";
+                document.getElementById('readerFsText').innerText = "Exit FS";
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                document.getElementById('readerFsIcon').className = "fa-solid fa-expand";
+                document.getElementById('readerFsText').innerText = "Fullscreen";
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const readerView = document.getElementById('readerView');
+            if (readerView && readerView.classList.contains('flex')) {
+                if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                    nextPage();
+                } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                    prevPage();
+                } else if (e.key === '+' || e.key === '=') {
+                    zoomIn();
+                } else if (e.key === '-') {
+                    zoomOut();
+                } else if (e.key === '0') {
+                    resetZoom();
+                } else if (e.key === 'Escape') {
+                    closeReader();
+                }
+            }
+        });
+
+        // Window resize listener
+        window.addEventListener('resize', () => {
+            const readerView = document.getElementById('readerView');
+            if (readerView && readerView.classList.contains('flex')) {
+                const verticalContainer = document.getElementById('verticalScrollViewContainer');
+                if (verticalContainer && isMobileDevice()) {
+                    verticalContainer.innerHTML = '';
+                }
+                updatePageSpread();
+            }
+        });
+
+        // Initialize application on DOM ready
+        window.addEventListener('DOMContentLoaded', () => {
+            renderBookshelf();
+        });
+    </script>
+</body>
+</html>
