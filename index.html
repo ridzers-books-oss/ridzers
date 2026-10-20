@@ -185,7 +185,7 @@
                     </button>
 
                     <!-- Chapter Sidebar Toggle Button (Icon Only) -->
-                    <button id="tocToggleBtn" onclick="toggleChapterSidebar()" title="Index & Content" class="hidden px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-zinc-800 items-center justify-center text-sm font-medium transition-all shadow">
+                    <button id="tocToggleBtn" onclick="toggleChapterSidebar()" title="index" class="hidden px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-zinc-800 items-center justify-center text-sm font-medium transition-all shadow">
                         <i class="fa-solid fa-list-ul"></i>
                     </button>
                 </div>
@@ -622,7 +622,7 @@
                     // Index Button (Jumps to the Table of Contents item right above Chapter 1)
                     const indexBtn = document.createElement('button');
                     indexBtn.className = "w-full text-left px-3 py-2.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 font-semibold transition-colors flex items-center space-x-2 border-b border-zinc-800 mb-2 text-xs";
-                    indexBtn.innerHTML = '<i class="fa-solid fa-list-check text-amber-500"></i><span>Index (Table of Contents)</span>';
+                    indexBtn.innerHTML = '<i class="fa-solid fa-list-check text-amber-500"></i><span>Table of Contents</span>';
                     indexBtn.onclick = () => {
                         if (tableOfContentsItem && tableOfContentsItem.href) {
                             epubRendition.display(tableOfContentsItem.href);
