@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Archive Reader</title>
+    <title>The Archive Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -12,17 +12,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <!-- PDF.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <!-- JSZip for EPUB parsing -->
+    <!-- JSZip (Required for EPUB extraction) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- epub.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.88/epub.min.js"></script>
+    <!-- ePub.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.93/epub.min.js"></script>
 
     <style>
         .font-cinzel { font-family: 'Cinzel', serif; }
         .font-playfair { font-family: 'Playfair Display', serif; }
         .font-sans { font-family: 'Inter', sans-serif; }
 
-        /* Writing Mode for Spine Text - Orientation Fixed Right-Side Up */
+        /* Writing Mode for Spine Text */
         .spine-text-vertical {
             writing-mode: vertical-rl;
             transform: rotate(0deg);
@@ -103,8 +103,8 @@
 
     <div id="app" class="min-h-screen flex flex-col justify-between relative">
 
-        <!-- Top Header Navigation Bar -->
-        <header class="w-full bg-black/70 backdrop-blur-md border-b border-amber-900/40 px-4 md:px-6 py-4 flex justify-between items-center z-50 sticky top-0 shadow-lg">
+        <!-- Top Header Navigation Bar (z-50 prevents spines from overlapping) -->
+        <header class="w-full bg-black/80 backdrop-blur-md border-b border-amber-900/40 px-4 md:px-6 py-4 flex justify-between items-center z-50 sticky top-0 shadow-lg">
             <div class="flex items-center space-x-3">
                 <div id="headerLogoBox" class="w-10 h-10 rounded-lg bg-amber-950 border border-amber-700/50 flex items-center justify-center shadow-md">
                     <i id="headerLogoIcon" class="fa-solid fa-book-bookmark text-amber-500 text-xl"></i>
@@ -124,15 +124,15 @@
             </div>
         </header>
 
-        <main id="bookshelfView" class="container mx-auto px-4 py-8 flex-1 flex flex-col justify-center transition-opacity duration-500">
+        <main id="bookshelfView" class="container mx-auto px-4 py-8 flex-1 flex flex-col justify-center transition-opacity duration-500 z-10">
             <div class="text-center mb-8">
-                <h2 id="mainHeading" class="text-3xl md:text-4xl font-cinzel font-bold text-amber-100 tracking-wide mb-2 drop-shadow-md">Bookshelf</h2>
+                <h2 id="mainHeading" class="text-3xl md:text-4xl font-cinzel font-bold text-amber-100 tracking-wide mb-2 drop-shadow-md">Books</h2>
             </div>
 
             <!-- Library Bookshelf Grid (8 Books Total) -->
             <div class="max-w-4xl mx-auto w-full space-y-12 py-4">
                 
-                <!-- Shelf Row 1 (4 Books) -->
+                <!-- Shelf Row 1 -->
                 <div class="relative">
                     <div id="shelfRow1Container" class="cubby-container p-4 md:p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg">
                         <div id="shelfRow1" class="w-full flex flex-wrap justify-center sm:justify-around items-end px-1 sm:px-2 shelf-container gap-3 sm:gap-4 md:gap-0"></div>
@@ -143,7 +143,7 @@
                     <div class="shelf-shadow h-8 w-full"></div>
                 </div>
 
-                <!-- Shelf Row 2 (4 Books) -->
+                <!-- Shelf Row 2 -->
                 <div class="relative">
                     <div id="shelfRow2Container" class="cubby-container p-4 md:p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg">
                         <div id="shelfRow2" class="w-full flex flex-wrap justify-center sm:justify-around items-end px-1 sm:px-2 shelf-container gap-3 sm:gap-4 md:gap-0"></div>
@@ -172,10 +172,10 @@
                 </div>
 
                 <div class="flex items-center space-x-2 md:space-x-3">
-                    <!-- Format Toggle Button (PDF / EPUB) -->
+                    <!-- Format Toggle Switcher (PDF <-> EPUB) -->
                     <button id="formatToggleBtn" onclick="toggleFormat()" title="Switch format between PDF and EPUB" class="p-2 px-3 rounded-lg bg-amber-950/80 hover:bg-amber-900 border border-amber-700/60 text-amber-300 text-sm font-medium transition-all flex items-center space-x-1.5 shadow">
-                        <i id="formatIcon" class="fa-solid fa-file-pdf text-amber-400"></i>
-                        <span id="formatText" class="text-xs font-bold uppercase tracking-wider">PDF</span>
+                        <i id="formatIcon" class="fa-solid fa-file-pdf"></i>
+                        <span id="formatBtnText" class="text-xs font-mono">PDF</span>
                     </button>
 
                     <button id="viewModeBtn" onclick="toggleViewMode()" title="Toggle Single or Two-Page Spread" class="p-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-amber-400 text-sm font-medium transition-all hidden md:flex items-center space-x-1.5 shadow">
@@ -202,22 +202,17 @@
                         <span id="readerFsText" class="text-xs">Fullscreen</span>
                     </button>
 
-                    <div class="flex items-center space-x-1 text-xs text-zinc-400 font-mono bg-zinc-900 px-2.5 py-1.5 rounded-md border border-zinc-800">
+                    <div id="pageTracker" class="flex items-center space-x-1 text-xs text-zinc-400 font-mono bg-zinc-900 px-2.5 py-1.5 rounded-md border border-zinc-800">
                         <i class="fa-solid fa-bookmark text-amber-500"></i>
                         <span><span id="currentPageNum" class="text-zinc-100 font-bold">1</span>/<span id="totalPagesNum">50</span></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Maximized Full-Bleed PDF / EPUB Viewport -->
+            <!-- Viewport Container -->
             <div id="readerCanvasContainer" class="flex-1 flex items-center justify-center p-0 m-0 relative overflow-auto select-none bg-black">
                 
-                <!-- EPUB Reader Container -->
-                <div id="epubArea" class="w-full h-full hidden items-center justify-center bg-zinc-950 p-4">
-                    <div id="epubViewer" class="w-full max-w-4xl h-full bg-zinc-900 rounded-lg shadow-2xl border border-zinc-800 overflow-hidden"></div>
-                </div>
-
-                <!-- Two-Page Spread View Container (Desktop) -->
+                <!-- Two-Page Spread View Container (Desktop PDF) -->
                 <div id="spreadViewContainer" class="w-full h-full flex items-center justify-center bg-black transition-transform duration-200 origin-center">
                     <div id="leftPageWrapper" class="w-1/2 h-full flex items-center justify-end bg-black overflow-hidden pr-0">
                         <canvas id="pdfCanvasLeft" class="max-h-full max-w-full object-contain shadow-2xl"></canvas>
@@ -233,9 +228,14 @@
                     <canvas id="pdfCanvasSingle" class="max-h-full max-w-full object-contain shadow-2xl"></canvas>
                 </div>
 
-                <!-- Vertical Scroll View Container (Mobile / Continuous) -->
+                <!-- Vertical Scroll View Container (Mobile PDF) -->
                 <div id="verticalScrollViewContainer" class="w-full h-full hidden flex-col items-center overflow-y-auto py-6 px-2 space-y-6 bg-black transition-transform duration-200">
                     <!-- Dynamic canvases injected here -->
+                </div>
+
+                <!-- EPUB View Container -->
+                <div id="epubContainer" class="w-full h-full hidden overflow-auto bg-zinc-900 relative flex items-center justify-center">
+                    <div id="epubViewerArea" class="w-full h-full max-w-4xl mx-auto p-4 md:p-8"></div>
                 </div>
 
                 <!-- Floating Navigation Arrows -->
@@ -248,7 +248,7 @@
                 </button>
             </div>
 
-            <!-- E-Reader Bottom Bar Navigation (Hidden on Mobile) -->
+            <!-- E-Reader Bottom Bar Navigation -->
             <div id="readerFooterBar" class="w-full bg-zinc-950/90 backdrop-blur border-t border-zinc-900 px-4 md:px-6 py-2 hidden md:flex flex-row items-center justify-between gap-4 z-10">
                 <div class="w-full flex items-center space-x-3">
                     <span class="text-xs text-zinc-500 font-mono">1</span>
@@ -265,7 +265,7 @@
         </div>
 
         <footer class="w-full bg-black/80 border-t border-amber-900/30 py-3 px-6 text-center text-xs text-amber-700/60 z-10">
-            <p>&copy; 2026 The Archive Library</p>
+            <p>&copy; 2026 Library Archive System</p>
         </footer>
 
     </div>
@@ -276,32 +276,33 @@
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         }
 
-        // Collection Dataset with PDF and EPUB path references
+        // Collection Dataset with PDF and EPUB paths
         const booksData = [
-            { id: 'book-1', title: 'Book 1', author: 'Liam L. Larmark', pdfPath: 'book1.pdf', epubPath: 'book1.epub', spineBg: 'bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950', textCol: 'text-amber-400', border: 'border-zinc-700/70', row: 1 },
-            { id: 'book-2', title: 'Book 2', author: 'Liam L. Larmark', pdfPath: 'book2.pdf', epubPath: 'book2.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 1 },
-            { id: 'book-3', title: 'Book 3', author: 'Liam L. Larmark', pdfPath: 'book3.pdf', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 1 },
-            { id: 'book-4', title: 'Book 4', author: 'Liam L. Larmark', pdfPath: 'book4.pdf', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 1 },
-            { id: 'book-5', title: 'Book 5', author: 'Liam L. Larmark', pdfPath: 'book5.pdf', epubPath: 'book5.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 },
-            { id: 'book-6', title: 'Book 6', author: 'Liam L. Larmark', pdfPath: 'book6.pdf', epubPath: 'book6.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 },
-            { id: 'book-7', title: 'Book 7', author: 'Liam L. Larmark', pdfPath: 'book7.pdf', epubPath: 'book7.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 },
-            { id: 'book-8', title: 'Book 8', author: 'Liam L. Larmark', pdfPath: 'book8.pdf', epubPath: 'book8.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 }
+            { id: 'book-1', title: 'Book 1', author: 'Author Name', pdfPath: 'book1.pdf', epubPath: 'book1.epub', spineBg: 'bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950', textCol: 'text-amber-400', border: 'border-zinc-700/70', row: 1 },
+            { id: 'book-2', title: 'Book 2', author: 'Author Name', pdfPath: 'book2.pdf', epubPath: 'book2.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 1 },
+            { id: 'book-3', title: 'Book 3', author: 'Author Name', pdfPath: 'book3.pdf', epubPath: 'book3.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 1 },
+            { id: 'book-4', title: 'Book 4', author: 'Author Name', pdfPath: 'book4.pdf', epubPath: 'book4.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 1 },
+            { id: 'book-5', title: 'Book 5', author: 'Author Name', pdfPath: 'book5.pdf', epubPath: 'book5.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 },
+            { id: 'book-6', title: 'Book 6', author: 'Author Name', pdfPath: 'book6.pdf', epubPath: 'book6.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 },
+            { id: 'book-7', title: 'Book 7', author: 'Author Name', pdfPath: 'book7.pdf', epubPath: 'book7.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 },
+            { id: 'book-8', title: 'Book 8', author: 'Author Name', pdfPath: 'book8.pdf', epubPath: 'book8.epub', spineBg: 'bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100', textCol: 'text-stone-900', border: 'border-stone-300/80', row: 2 }
         ];
 
         // State variables
         let currentBook = null;
         let pdfDoc = null;
-        let epubBook = null;
-        let epubRendition = null;
-        let currentFormat = 'pdf'; // 'pdf' or 'epub'
         let currentPage = 1;
         let isSinglePageView = false;
+        let currentFormat = 'pdf'; // 'pdf' or 'epub'
+        let epubBookInstance = null;
+        let epubRendition = null;
+
         let currentZoomScale = 1.0;
         const MIN_ZOOM = 0.8;
         const MAX_ZOOM = 2.5;
         const ZOOM_STEP = 0.25;
 
-        const STORAGE_KEY = 'gentlemans_archive_progress_v9';
+        const STORAGE_KEY = 'gentlemans_archive_progress_v8';
 
         function isMobileDevice() {
             return window.innerWidth < 768;
@@ -316,10 +317,10 @@
             }
         }
 
-        function saveProgress(bookId, pageNum, format) {
+        function saveProgress(bookId, pageNum) {
             try {
                 const progress = loadProgress();
-                progress[bookId] = { page: pageNum, format: format || currentFormat, updatedAt: new Date().toISOString() };
+                progress[bookId] = { page: pageNum, updatedAt: new Date().toISOString() };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
             } catch (e) {
                 console.warn('Could not save reading progress:', e);
@@ -340,7 +341,6 @@
             booksData.forEach(book => {
                 const bookProgress = progress[book.id];
                 const savedPage = bookProgress ? bookProgress.page : 1;
-                const savedFormat = bookProgress ? (bookProgress.format || 'pdf') : 'pdf';
 
                 const spine = document.createElement('div');
                 spine.className = `book-spine w-14 sm:w-16 md:w-20 h-40 sm:h-44 md:h-52 ${book.spineBg} border ${book.border} rounded-sm flex flex-col justify-between py-3 px-1.5 sm:px-2 shadow-2xl flex-shrink-0`;
@@ -356,9 +356,8 @@
                             ${book.title}
                         </span>
                     </div>
-                    <div class="text-center font-mono text-[9px] ${book.textCol} opacity-80 flex flex-col items-center justify-center">
+                    <div class="text-center font-mono text-[9px] ${book.textCol} opacity-80">
                         ${savedPage > 1 ? `<span class="text-emerald-500 font-bold">P.${savedPage}</span>` : ''}
-                        <span class="text-[8px] uppercase tracking-wider text-amber-500/80">${savedFormat}</span>
                     </div>
                     <div class="spine-ridge bottom-8"></div>
                     <div class="spine-ridge bottom-4"></div>
@@ -374,101 +373,20 @@
             });
         }
 
-        function toggleFormat() {
-            currentFormat = currentFormat === 'pdf' ? 'epub' : 'pdf';
-            updateFormatUI();
-            if (currentBook) {
-                loadBookFormat();
-            }
-        }
-
-        function updateFormatUI() {
-            const btnIcon = document.getElementById('formatIcon');
-            const btnText = document.getElementById('formatText');
-            const viewModeBtn = document.getElementById('viewModeBtn');
-            const zoomControls = document.getElementById('zoomControls');
-
-            if (currentFormat === 'epub') {
-                btnIcon.className = "fa-solid fa-book-bookmark text-amber-400";
-                btnText.innerText = "EPUB";
-                if (viewModeBtn) viewModeBtn.classList.add('hidden');
-                if (zoomControls) zoomControls.classList.add('hidden');
-            } else {
-                btnIcon.className = "fa-solid fa-file-pdf text-amber-400";
-                btnText.innerText = "PDF";
-                if (viewModeBtn && !isMobileDevice()) viewModeBtn.classList.remove('hidden');
-                if (zoomControls && !isMobileDevice()) zoomControls.classList.remove('hidden');
-            }
-        }
-
-        function zoomIn() {
-            if (currentFormat === 'epub') return;
-            if (currentZoomScale < MAX_ZOOM) {
-                currentZoomScale = Math.min(MAX_ZOOM, currentZoomScale + ZOOM_STEP);
-                applyZoom();
-            }
-        }
-
-        function zoomOut() {
-            if (currentFormat === 'epub') return;
-            if (currentZoomScale > MIN_ZOOM) {
-                currentZoomScale = Math.max(MIN_ZOOM, currentZoomScale - ZOOM_STEP);
-                applyZoom();
-            }
-        }
-
-        function resetZoom() {
-            currentZoomScale = 1.0;
-            applyZoom();
-        }
-
-        function applyZoom() {
-            const spreadContainer = document.getElementById('spreadViewContainer');
-            const singleContainer = document.getElementById('singleViewContainer');
-            const verticalContainer = document.getElementById('verticalScrollViewContainer');
-            const container = document.getElementById('readerCanvasContainer');
-            const display = document.getElementById('zoomLevelDisplay');
-
-            if (display) {
-                display.innerText = `${Math.round(currentZoomScale * 100)}%`;
-            }
-
-            const transformValue = `scale(${currentZoomScale})`;
-            
-            [spreadContainer, singleContainer, verticalContainer].forEach(el => {
-                if (el) {
-                    el.style.transform = transformValue;
-                    el.style.transformOrigin = currentZoomScale > 1.0 ? 'top center' : 'center center';
-                }
-            });
-
-            if (container) {
-                if (currentZoomScale > 1.0) {
-                    container.classList.remove('items-center');
-                    container.classList.add('items-start');
-                } else {
-                    container.classList.remove('items-start');
-                    container.classList.add('items-center');
-                }
-            }
-        }
-
         async function openBook(bookId) {
             currentBook = booksData.find(b => b.id === bookId);
             if (!currentBook) return;
 
             resetZoom();
+            currentFormat = 'pdf'; // Default to PDF view
 
             const progress = loadProgress();
-            if (progress[bookId]) {
-                currentPage = progress[bookId].page || 1;
-                currentFormat = progress[bookId].format || 'pdf';
-            } else {
-                currentPage = 1;
-                currentFormat = 'pdf';
-            }
+            currentPage = (progress[bookId] && progress[bookId].page) ? progress[bookId].page : 1;
 
-            updateFormatUI();
+            if (!isMobileDevice() && !isSinglePageView && currentPage % 2 === 0) {
+                currentPage -= 1;
+            }
+            if (currentPage < 1) currentPage = 1;
 
             document.getElementById('readerTitle').innerText = currentBook.title;
             document.getElementById('readerAuthor').innerText = currentBook.author;
@@ -477,132 +395,110 @@
             readerView.classList.remove('hidden');
             readerView.classList.add('flex');
 
-            await loadBookFormat();
+            currentBook.totalPages = 50;
+
+            try {
+                if (window.pdfjsLib && currentBook.pdfPath) {
+                    const loadingTask = pdfjsLib.getDocument(currentBook.pdfPath);
+                    pdfDoc = await loadingTask.promise;
+                    currentBook.totalPages = pdfDoc.numPages;
+                }
+            } catch (e) {
+                console.warn('PDF load fallback enabled:', e);
+                pdfDoc = null;
+            }
+
+            document.getElementById('totalPagesNum').innerText = currentBook.totalPages;
+            const slider = document.getElementById('pageSlider');
+            slider.max = currentBook.totalPages;
+            document.getElementById('sliderMaxLabel').innerText = currentBook.totalPages;
+
+            if (currentPage > currentBook.totalPages) currentPage = 1;
+
+            await updatePageSpread();
+            updateFormatUI();
         }
 
-        async function loadBookFormat() {
-            const epubArea = document.getElementById('epubArea');
-            const spreadContainer = document.getElementById('spreadViewContainer');
-            const singleContainer = document.getElementById('singleViewContainer');
-            const verticalContainer = document.getElementById('verticalScrollViewContainer');
-
-            // Destroy previous EPUB rendition if existing
-            if (epubRendition) {
-                try { epubRendition.destroy(); } catch (e) {}
-                epubRendition = null;
-                epubBook = null;
-            }
+        // Format Switcher Function
+        async function toggleFormat() {
+            currentFormat = currentFormat === 'pdf' ? 'epub' : 'pdf';
+            updateFormatUI();
 
             if (currentFormat === 'epub') {
-                spreadContainer.classList.add('hidden');
-                singleContainer.classList.add('hidden');
-                verticalContainer.classList.add('hidden');
-                epubArea.classList.remove('hidden');
-                epubArea.classList.add('flex');
-
-                const viewerEl = document.getElementById('epubViewer');
-                viewerEl.innerHTML = '';
-
-                try {
-                    if (window.ePub && currentBook.epubPath) {
-                        epubBook = ePub(currentBook.epubPath);
-                        epubRendition = epubBook.renderTo("epubViewer", {
-                            width: "100%",
-                            height: "100%",
-                            spread: "always"
-                        });
-
-                        epubRendition.display();
-
-                        epubRendition.on("relocated", (location) => {
-                            if (location && location.start) {
-                                currentPage = location.start.displayed.page || currentPage;
-                                const total = location.start.displayed.total || 50;
-                                document.getElementById('currentPageNum').innerText = currentPage;
-                                document.getElementById('totalPagesNum').innerText = total;
-                                document.getElementById('pageSlider').value = currentPage;
-                                document.getElementById('pageSlider').max = total;
-                                document.getElementById('sliderMaxLabel').innerText = total;
-                                saveProgress(currentBook.id, currentPage, 'epub');
-                            }
-                        });
-                    }
-                } catch (e) {
-                    console.warn('EPUB file rendering fallback activated:', e);
-                    viewerEl.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-amber-500 font-sans p-6 text-center">
-                        <i class="fa-solid fa-book-open text-4xl mb-3"></i>
-                        <p class="font-bold">EPUB Mode Preview</p>
-                        <p class="text-xs text-zinc-400 mt-1">Switch formats or view with a local EPUB server.</p>
-                    </div>`;
-                }
+                await openEpubFormat();
             } else {
-                epubArea.classList.add('hidden');
-                epubArea.classList.remove('flex');
-
-                currentBook.totalPages = 50;
-
-                try {
-                    if (window.pdfjsLib && currentBook.pdfPath) {
-                        const loadingTask = pdfjsLib.getDocument(currentBook.pdfPath);
-                        pdfDoc = await loadingTask.promise;
-                        currentBook.totalPages = pdfDoc.numPages;
-                    }
-                } catch (e) {
-                    console.warn('PDF load fallback enabled:', e);
-                    pdfDoc = null;
-                }
-
-                document.getElementById('totalPagesNum').innerText = currentBook.totalPages;
-                const slider = document.getElementById('pageSlider');
-                slider.max = currentBook.totalPages;
-                document.getElementById('sliderMaxLabel').innerText = currentBook.totalPages;
-
-                if (currentPage > currentBook.totalPages) currentPage = 1;
-                await updatePageSpread();
+                await openPdfFormat();
             }
         }
 
-        async function renderCanvasPage(pageNum, canvasId, containerWidth, containerHeight) {
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
+        function updateFormatUI() {
+            const btnText = document.getElementById('formatBtnText');
+            const btnIcon = document.getElementById('formatIcon');
+            const zoomControls = document.getElementById('zoomControls');
+            const viewModeBtn = document.getElementById('viewModeBtn');
+            const footerBar = document.getElementById('readerFooterBar');
 
-            const ctx = canvas.getContext('2d');
+            if (currentFormat === 'epub') {
+                btnText.innerText = "EPUB";
+                btnIcon.className = "fa-solid fa-book-bookmark text-amber-400";
+                if (zoomControls) zoomControls.classList.add('hidden');
+                if (viewModeBtn) viewModeBtn.classList.add('hidden');
+                if (footerBar) footerBar.classList.add('hidden');
+            } else {
+                btnText.innerText = "PDF";
+                btnIcon.className = "fa-solid fa-file-pdf text-amber-400";
+                if (zoomControls && !isMobileDevice()) zoomControls.classList.remove('hidden');
+                if (viewModeBtn && !isMobileDevice()) viewModeBtn.classList.remove('hidden');
+                if (footerBar && !isMobileDevice()) footerBar.classList.remove('hidden');
+            }
+        }
 
-            if (!pdfDoc || pageNum > pdfDoc.numPages || pageNum < 1) {
-                canvas.width = containerWidth || 800;
-                canvas.height = containerHeight || 1100;
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+        async function openEpubFormat() {
+            document.getElementById('spreadViewContainer').classList.add('hidden');
+            document.getElementById('singleViewContainer').classList.add('hidden');
+            document.getElementById('verticalScrollViewContainer').classList.add('hidden');
+
+            const epubContainer = document.getElementById('epubContainer');
+            const epubViewerArea = document.getElementById('epubViewerArea');
+            epubContainer.classList.remove('hidden');
+            epubViewerArea.innerHTML = '';
+
+            if (!currentBook || !currentBook.epubPath) {
+                epubViewerArea.innerHTML = '<div class="text-amber-200 text-center py-20 font-cinzel">No EPUB file mapped for this book.</div>';
                 return;
             }
 
             try {
-                const page = await pdfDoc.getPage(pageNum);
-                const viewportUnscaled = page.getViewport({ scale: 1 });
-                
-                const scaleX = containerWidth / viewportUnscaled.width;
-                const scaleY = containerHeight / viewportUnscaled.height;
-                const scale = Math.min(scaleX, scaleY) * 2.5;
+                if (typeof ePub === 'undefined') {
+                    throw new Error('ePub library not loaded');
+                }
+                epubBookInstance = ePub(currentBook.epubPath);
+                epubRendition = epubBookInstance.renderTo("epubViewerArea", {
+                    width: "100%",
+                    height: "100%",
+                    spread: "auto"
+                });
 
-                const viewport = page.getViewport({ scale: scale });
-
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-
-                const renderContext = {
-                    canvasContext: ctx,
-                    viewport: viewport
-                };
-                await page.render(renderContext).promise;
+                await epubRendition.display();
+                document.getElementById('currentPageNum').innerText = "EPUB";
+                document.getElementById('totalPagesNum').innerText = "MODE";
             } catch (e) {
-                console.error('Error rendering page canvas:', e);
+                console.error("EPUB render failed:", e);
+                epubViewerArea.innerHTML = `<div class="text-amber-400 text-center py-20 font-mono text-sm">Failed to load EPUB file (${currentBook.epubPath}).<br><span class="text-zinc-500 text-xs mt-2 block">Ensure file exists on web server or GitHub Pages repository.</span></div>`;
             }
+        }
+
+        async function openPdfFormat() {
+            const epubContainer = document.getElementById('epubContainer');
+            epubContainer.classList.add('hidden');
+
+            await updatePageSpread();
         }
 
         async function updatePageSpread() {
             if (!currentBook || currentFormat === 'epub') return;
 
-            saveProgress(currentBook.id, currentPage, 'pdf');
+            saveProgress(currentBook.id, currentPage);
 
             const container = document.getElementById('readerCanvasContainer');
             const fullW = container.clientWidth;
@@ -667,6 +563,71 @@
             }
         }
 
+        async function renderCanvasPage(pageNum, canvasId, containerWidth, containerHeight) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            if (!pdfDoc || pageNum > pdfDoc.numPages || pageNum < 1) {
+                canvas.width = containerWidth || 800;
+                canvas.height = containerHeight || 1100;
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+
+            try {
+                const page = await pdfDoc.getPage(pageNum);
+                const viewportUnscaled = page.getViewport({ scale: 1 });
+                const scaleX = containerWidth / viewportUnscaled.width;
+                const scaleY = containerHeight / viewportUnscaled.height;
+                const scale = Math.min(scaleX, scaleY) * 2.5;
+
+                const viewport = page.getViewport({ scale: scale });
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+            } catch (e) {
+                console.error('Error rendering canvas page:', e);
+            }
+        }
+
+        function zoomIn() {
+            if (currentFormat === 'epub') return;
+            if (currentZoomScale < MAX_ZOOM) {
+                currentZoomScale = Math.min(MAX_ZOOM, currentZoomScale + ZOOM_STEP);
+                applyZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentFormat === 'epub') return;
+            if (currentZoomScale > MIN_ZOOM) {
+                currentZoomScale = Math.max(MIN_ZOOM, currentZoomScale - ZOOM_STEP);
+                applyZoom();
+            }
+        }
+
+        function resetZoom() {
+            currentZoomScale = 1.0;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const spreadContainer = document.getElementById('spreadViewContainer');
+            const singleContainer = document.getElementById('singleViewContainer');
+            const display = document.getElementById('zoomLevelDisplay');
+
+            if (display) display.innerText = `${Math.round(currentZoomScale * 100)}%`;
+            const transformValue = `scale(${currentZoomScale})`;
+            
+            [spreadContainer, singleContainer].forEach(el => {
+                if (el) el.style.transform = transformValue;
+            });
+        }
+
         function toggleViewMode() {
             if (isMobileDevice() || currentFormat === 'epub') return;
             isSinglePageView = !isSinglePageView;
@@ -689,12 +650,6 @@
             readerView.classList.add('hidden');
             readerView.classList.remove('flex');
 
-            if (epubRendition) {
-                try { epubRendition.destroy(); } catch (e) {}
-                epubRendition = null;
-                epubBook = null;
-            }
-
             const verticalContainer = document.getElementById('verticalScrollViewContainer');
             if (verticalContainer) verticalContainer.innerHTML = '';
 
@@ -706,13 +661,11 @@
         }
 
         async function nextPage() {
-            if (!currentBook) return;
-
-            if (currentFormat === 'epub') {
-                if (epubRendition) epubRendition.next();
+            if (currentFormat === 'epub' && epubRendition) {
+                epubRendition.next();
                 return;
             }
-
+            if (!currentBook) return;
             const step = (isMobileDevice() || isSinglePageView) ? 1 : 2;
             if (currentPage + step <= currentBook.totalPages) {
                 currentPage += step;
@@ -721,13 +674,11 @@
         }
 
         async function prevPage() {
-            if (!currentBook) return;
-
-            if (currentFormat === 'epub') {
-                if (epubRendition) epubRendition.prev();
+            if (currentFormat === 'epub' && epubRendition) {
+                epubRendition.prev();
                 return;
             }
-
+            if (!currentBook) return;
             const step = (isMobileDevice() || isSinglePageView) ? 1 : 2;
             if (currentPage - step >= 1) {
                 currentPage -= step;
@@ -736,14 +687,9 @@
         }
 
         async function goToPage(page) {
-            if (!currentBook) return;
+            if (!currentBook || currentFormat === 'epub') return;
             let target = parseInt(page);
             if (isNaN(target)) return;
-
-            if (currentFormat === 'epub') {
-                if (epubRendition) epubRendition.display(target);
-                return;
-            }
 
             if (!isMobileDevice() && !isSinglePageView && target % 2 === 0) {
                 target -= 1;
@@ -763,14 +709,12 @@
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    console.error("Error enabling fullscreen:", err);
+                    console.error("Fullscreen error:", err);
                 });
                 document.getElementById('fullscreenIcon').className = "fa-solid fa-compress text-amber-400";
                 document.getElementById('fullscreenText').innerText = "Exit Fullscreen";
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+                if (document.exitFullscreen) document.exitFullscreen();
                 document.getElementById('fullscreenIcon').className = "fa-solid fa-expand text-amber-400";
                 document.getElementById('fullscreenText').innerText = "Fullscreen";
             }
@@ -780,20 +724,18 @@
             const readerView = document.getElementById('readerView');
             if (!document.fullscreenElement) {
                 readerView.requestFullscreen().catch(err => {
-                    console.error("Error enabling reader fullscreen:", err);
+                    console.error("Reader fullscreen error:", err);
                 });
                 document.getElementById('readerFsIcon').className = "fa-solid fa-compress";
                 document.getElementById('readerFsText').innerText = "Exit FS";
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+                if (document.exitFullscreen) document.exitFullscreen();
                 document.getElementById('readerFsIcon').className = "fa-solid fa-expand";
                 document.getElementById('readerFsText').innerText = "Fullscreen";
             }
         }
 
-        // Keyboard navigation listeners
+        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
             const readerView = document.getElementById('readerView');
             if (readerView && readerView.classList.contains('flex')) {
@@ -816,7 +758,7 @@
         // Window resize listener
         window.addEventListener('resize', () => {
             const readerView = document.getElementById('readerView');
-            if (readerView && readerView.classList.contains('flex') && currentFormat === 'pdf') {
+            if (readerView && readerView.classList.contains('flex')) {
                 const verticalContainer = document.getElementById('verticalScrollViewContainer');
                 if (verticalContainer && isMobileDevice()) {
                     verticalContainer.innerHTML = '';
@@ -825,7 +767,7 @@
             }
         });
 
-        // Initialize application on load
+        // Initialize application on DOM ready
         window.addEventListener('DOMContentLoaded', () => {
             renderBookshelf();
         });
