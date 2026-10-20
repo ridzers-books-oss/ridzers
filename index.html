@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rn</title>
+    <title>The Archive Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -103,7 +103,7 @@
 
     <div id="app" class="min-h-screen flex flex-col justify-between relative">
 
-        <!-- Top Header Navigation Bar (z-50 prevents spines from overlapping) -->
+        <!-- Top Header Navigation Bar -->
         <header class="w-full bg-black/80 backdrop-blur-md border-b border-amber-900/40 px-4 md:px-6 py-4 flex justify-between items-center z-50 sticky top-0 shadow-lg">
             <div class="flex items-center space-x-3">
                 <div id="headerLogoBox" class="w-10 h-10 rounded-lg bg-amber-950 border border-amber-700/50 flex items-center justify-center shadow-md">
@@ -129,9 +129,8 @@
                 <h2 id="mainHeading" class="text-3xl md:text-4xl font-cinzel font-bold text-amber-100 tracking-wide mb-2 drop-shadow-md">Books</h2>
             </div>
 
-            <!-- Library Bookshelf Grid (8 Books Total) -->
+            <!-- Library Bookshelf Grid -->
             <div class="max-w-4xl mx-auto w-full space-y-12 py-4">
-                
                 <!-- Shelf Row 1 -->
                 <div class="relative">
                     <div id="shelfRow1Container" class="cubby-container p-4 md:p-6 pb-2 min-h-[220px] flex items-end rounded-t-lg">
@@ -153,7 +152,6 @@
                     </div>
                     <div class="shelf-shadow h-8 w-full"></div>
                 </div>
-
             </div>
         </main>
 
@@ -161,10 +159,18 @@
             
             <!-- E-Reader Top Bar Navigation -->
             <div id="readerHeader" class="w-full bg-zinc-950/90 backdrop-blur border-b border-zinc-900 px-4 md:px-6 py-2.5 flex justify-between items-center z-10 flex-wrap gap-2">
-                <button onclick="closeReader()" class="px-3 md:px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 flex items-center space-x-2 text-sm font-medium transition-all shadow">
-                    <i class="fa-solid fa-arrow-left text-amber-500"></i>
-                    <span>Shelf</span>
-                </button>
+                <div class="flex items-center space-x-2">
+                    <button onclick="closeReader()" class="px-3 md:px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 flex items-center space-x-2 text-sm font-medium transition-all shadow">
+                        <i class="fa-solid fa-arrow-left text-amber-500"></i>
+                        <span>Shelf</span>
+                    </button>
+
+                    <!-- Chapter Sidebar Toggle Button (EPUB Only) -->
+                    <button id="tocToggleBtn" onclick="toggleChapterSidebar()" title="Chapters Table of Contents" class="hidden px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-zinc-800 items-center space-x-2 text-sm font-medium transition-all shadow">
+                        <i class="fa-solid fa-list-ul"></i>
+                        <span class="hidden sm:inline">Chapters</span>
+                    </button>
+                </div>
 
                 <div class="text-center px-2 flex-1 min-w-[150px]">
                     <h3 id="readerTitle" class="font-cinzel text-sm md:text-lg font-bold text-zinc-100 tracking-wider truncate">Book Title</h3>
@@ -210,8 +216,24 @@
             </div>
 
             <!-- Viewport Container -->
-            <div id="readerCanvasContainer" class="flex-1 flex items-center justify-center p-0 m-0 relative overflow-auto select-none bg-black">
+            <div id="readerCanvasContainer" class="flex-1 flex items-center justify-center p-0 m-0 relative overflow-hidden select-none bg-black">
                 
+                <!-- EPUB Chapter Navigation Sidebar -->
+                <div id="chapterSidebar" class="absolute left-0 top-0 bottom-0 w-64 md:w-80 bg-zinc-900 border-r border-zinc-800 shadow-2xl z-40 transform -translate-x-full transition-transform duration-300 flex flex-col">
+                    <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
+                        <h4 class="font-cinzel text-amber-400 font-bold text-sm tracking-wider flex items-center space-x-2">
+                            <i class="fa-solid fa-list-ol"></i>
+                            <span>Table of Contents</span>
+                        </h4>
+                        <button onclick="toggleChapterSidebar()" class="text-zinc-400 hover:text-white text-sm p-1">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="chapterListContainer" class="flex-1 overflow-y-auto p-2 space-y-1 text-xs font-sans">
+                        <div class="text-zinc-500 text-center py-6">Loading chapters...</div>
+                    </div>
+                </div>
+
                 <!-- Two-Page Spread View Container (Desktop PDF) -->
                 <div id="spreadViewContainer" class="w-full h-full flex items-center justify-center bg-black transition-transform duration-200 origin-center">
                     <div id="leftPageWrapper" class="w-1/2 h-full flex items-center justify-end bg-black overflow-hidden pr-0">
@@ -233,12 +255,12 @@
                     <!-- Dynamic canvases injected here -->
                 </div>
 
-                <!-- EPUB View Container -->
-                <div id="epubContainer" class="w-full h-full hidden overflow-auto bg-zinc-900 relative flex items-center justify-center">
+                <!-- EPUB View Container (White Background Theme with Wheel Nav) -->
+                <div id="epubContainer" class="w-full h-full hidden bg-white text-zinc-900 relative flex items-center justify-center overflow-hidden transition-colors duration-300">
                     <div id="epubViewerArea" class="w-full h-full max-w-4xl mx-auto p-4 md:p-8"></div>
                 </div>
 
-                <!-- Floating Navigation Arrows -->
+                <!-- Floating Navigation Arrows (PDF Only) -->
                 <button id="prevArrowBtn" onclick="prevPage()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/80 hover:bg-amber-600 border border-zinc-700/60 text-amber-400 hover:text-white flex items-center justify-center transition-all shadow-2xl z-20 group">
                     <i class="fa-solid fa-chevron-left text-xl group-hover:-translate-x-0.5 transition-transform"></i>
                 </button>
@@ -296,6 +318,7 @@
         let currentFormat = 'pdf'; // 'pdf' or 'epub'
         let epubBookInstance = null;
         let epubRendition = null;
+        let wheelThrottleTimer = null;
 
         let currentZoomScale = 1.0;
         const MIN_ZOOM = 0.8;
@@ -419,7 +442,15 @@
             updateFormatUI();
         }
 
-        // Format Switcher Function
+        function toggleChapterSidebar() {
+            const sidebar = document.getElementById('chapterSidebar');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+
         async function toggleFormat() {
             currentFormat = currentFormat === 'pdf' ? 'epub' : 'pdf';
             updateFormatUI();
@@ -437,6 +468,9 @@
             const zoomControls = document.getElementById('zoomControls');
             const viewModeBtn = document.getElementById('viewModeBtn');
             const footerBar = document.getElementById('readerFooterBar');
+            const tocBtn = document.getElementById('tocToggleBtn');
+            const prevArrow = document.getElementById('prevArrowBtn');
+            const nextArrow = document.getElementById('nextArrowBtn');
 
             if (currentFormat === 'epub') {
                 btnText.innerText = "EPUB";
@@ -444,12 +478,21 @@
                 if (zoomControls) zoomControls.classList.add('hidden');
                 if (viewModeBtn) viewModeBtn.classList.add('hidden');
                 if (footerBar) footerBar.classList.add('hidden');
+                if (tocBtn) tocBtn.classList.remove('hidden'), tocBtn.classList.add('flex');
+                if (prevArrow) prevArrow.classList.add('hidden');
+                if (nextArrow) nextArrow.classList.add('hidden');
             } else {
                 btnText.innerText = "PDF";
                 btnIcon.className = "fa-solid fa-file-pdf text-amber-400";
                 if (zoomControls && !isMobileDevice()) zoomControls.classList.remove('hidden');
                 if (viewModeBtn && !isMobileDevice()) viewModeBtn.classList.remove('hidden');
                 if (footerBar && !isMobileDevice()) footerBar.classList.remove('hidden');
+                if (tocBtn) tocBtn.classList.add('hidden'), tocBtn.classList.remove('flex');
+                if (prevArrow && !isMobileDevice()) prevArrow.classList.remove('hidden');
+                if (nextArrow && !isMobileDevice()) nextArrow.classList.remove('hidden');
+                
+                // Hide chapter sidebar when switching to PDF
+                document.getElementById('chapterSidebar').classList.add('-translate-x-full');
             }
         }
 
@@ -464,7 +507,7 @@
             epubViewerArea.innerHTML = '';
 
             if (!currentBook || !currentBook.epubPath) {
-                epubViewerArea.innerHTML = '<div class="text-amber-200 text-center py-20 font-cinzel">No EPUB file mapped for this book.</div>';
+                epubViewerArea.innerHTML = '<div class="text-amber-900 text-center py-20 font-cinzel">No EPUB file mapped for this book.</div>';
                 return;
             }
 
@@ -472,19 +515,88 @@
                 if (typeof ePub === 'undefined') {
                     throw new Error('ePub library not loaded');
                 }
+
                 epubBookInstance = ePub(currentBook.epubPath);
                 epubRendition = epubBookInstance.renderTo("epubViewerArea", {
                     width: "100%",
                     height: "100%",
-                    spread: "auto"
+                    spread: "auto",
+                    flow: "paginated",
+                    allowScriptedContent: true
+                });
+
+                // Apply light theme default styling inside ePub iframe
+                epubRendition.themes.default({
+                    'body': {
+                        'background': '#ffffff !important',
+                        'color': '#18181b !important',
+                        'font-family': 'Inter, sans-serif !important',
+                        'line-height': '1.6 !important'
+                    }
                 });
 
                 await epubRendition.display();
+
+                // Extract Chapters / Table of Contents
+                const tocContainer = document.getElementById('chapterListContainer');
+                tocContainer.innerHTML = '';
+
+                epubBookInstance.loaded.navigation.then(function(nav) {
+                    if (nav.toc && nav.toc.length > 0) {
+                        nav.toc.forEach(function(chapter) {
+                            const btn = document.createElement('button');
+                            btn.className = "w-full text-left px-3 py-2 rounded hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 transition-colors truncate border-b border-zinc-800/50";
+                            btn.innerText = chapter.label.trim() || 'Untitled Chapter';
+                            btn.onclick = () => {
+                                epubRendition.display(chapter.href);
+                                toggleChapterSidebar();
+                            };
+                            tocContainer.appendChild(btn);
+                        });
+                    } else {
+                        tocContainer.innerHTML = '<div class="text-zinc-500 text-center py-6">No chapters listed in EPUB.</div>';
+                    }
+                });
+
                 document.getElementById('currentPageNum').innerText = "EPUB";
                 document.getElementById('totalPagesNum').innerText = "MODE";
+
+                // Attach Mouse Wheel Navigation listener
+                attachEpubWheelNavigation();
+
             } catch (e) {
                 console.error("EPUB render failed:", e);
-                epubViewerArea.innerHTML = `<div class="text-amber-400 text-center py-20 font-mono text-sm">Failed to load EPUB file (${currentBook.epubPath}).<br><span class="text-zinc-500 text-xs mt-2 block">Ensure file exists on web server or GitHub Pages repository.</span></div>`;
+                epubViewerArea.innerHTML = `<div class="text-amber-800 text-center py-20 font-mono text-sm">Failed to load EPUB file (${currentBook.epubPath}).<br><span class="text-zinc-500 text-xs mt-2 block">Ensure file exists on web server or GitHub Pages repository.</span></div>`;
+            }
+        }
+
+        // Mouse Wheel scrolling to navigate EPUB pages
+        function attachEpubWheelNavigation() {
+            const container = document.getElementById('epubContainer');
+            if (!container) return;
+
+            const handleWheel = (e) => {
+                if (currentFormat !== 'epub' || !epubRendition) return;
+                
+                // Throttle wheel turns so pages don't flip too rapidly
+                if (wheelThrottleTimer) return;
+                
+                if (e.deltaY > 0) {
+                    epubRendition.next();
+                } else if (e.deltaY < 0) {
+                    epubRendition.prev();
+                }
+
+                wheelThrottleTimer = setTimeout(() => {
+                    wheelThrottleTimer = null;
+                }, 250);
+            };
+
+            container.onwheel = handleWheel;
+
+            // Also attach inside iframe document when rendered
+            if (epubRendition) {
+                epubRendition.on('wheel', handleWheel);
             }
         }
 
