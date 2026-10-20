@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Archive Library</title>
+    <title>The Rapist Nigger</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -165,7 +165,7 @@
                         <span>Shelf</span>
                     </button>
 
-                    <!-- Chapter Sidebar Toggle Button (EPUB Only) -->
+                    <!-- Chapter Sidebar Toggle Button -->
                     <button id="tocToggleBtn" onclick="toggleChapterSidebar()" title="Chapters Table of Contents" class="hidden px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-zinc-800 items-center space-x-2 text-sm font-medium transition-all shadow">
                         <i class="fa-solid fa-list-ul"></i>
                         <span class="hidden sm:inline">Chapters</span>
@@ -255,12 +255,12 @@
                     <!-- Dynamic canvases injected here -->
                 </div>
 
-                <!-- EPUB View Container (White Background Theme with Wheel Nav) -->
-                <div id="epubContainer" class="w-full h-full hidden bg-white text-zinc-900 relative flex items-center justify-center overflow-hidden transition-colors duration-300">
+                <!-- EPUB View Container (White Background Theme with Smooth Mobile Scrolling) -->
+                <div id="epubContainer" class="w-full h-full hidden bg-white text-zinc-900 relative flex items-center justify-center overflow-y-auto transition-colors duration-300">
                     <div id="epubViewerArea" class="w-full h-full max-w-4xl mx-auto p-4 md:p-8"></div>
                 </div>
 
-                <!-- Floating Navigation Arrows (PDF Only) -->
+                <!-- Floating Navigation Arrows -->
                 <button id="prevArrowBtn" onclick="prevPage()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/80 hover:bg-amber-600 border border-zinc-700/60 text-amber-400 hover:text-white flex items-center justify-center transition-all shadow-2xl z-20 group">
                     <i class="fa-solid fa-chevron-left text-xl group-hover:-translate-x-0.5 transition-transform"></i>
                 </button>
@@ -479,8 +479,17 @@
                 if (viewModeBtn) viewModeBtn.classList.add('hidden');
                 if (footerBar) footerBar.classList.add('hidden');
                 if (tocBtn) tocBtn.classList.remove('hidden'), tocBtn.classList.add('flex');
-                if (prevArrow) prevArrow.classList.add('hidden');
-                if (nextArrow) nextArrow.classList.add('hidden');
+                
+                // Hide arrows on mobile view for EPUB since it uses natural scrolling
+                if (prevArrow && nextArrow) {
+                    if (!isMobileDevice()) {
+                        prevArrow.classList.remove('hidden');
+                        nextArrow.classList.remove('hidden');
+                    } else {
+                        prevArrow.classList.add('hidden');
+                        nextArrow.classList.add('hidden');
+                    }
+                }
             } else {
                 btnText.innerText = "PDF";
                 btnIcon.className = "fa-solid fa-file-pdf text-amber-400";
@@ -491,7 +500,6 @@
                 if (prevArrow && !isMobileDevice()) prevArrow.classList.remove('hidden');
                 if (nextArrow && !isMobileDevice()) nextArrow.classList.remove('hidden');
                 
-                // Hide chapter sidebar when switching to PDF
                 document.getElementById('chapterSidebar').classList.add('-translate-x-full');
             }
         }
@@ -517,11 +525,14 @@
                 }
 
                 epubBookInstance = ePub(currentBook.epubPath);
+                
+                // FIX: On mobile, use continuous vertical scroll flow (`scrolled-doc`). On desktop, use paginated spread.
+                const epubFlowMode = isMobileDevice() ? "scrolled-doc" : "paginated";
+
                 epubRendition = epubBookInstance.renderTo("epubViewerArea", {
                     width: "100%",
                     height: "100%",
-                    spread: "auto",
-                    flow: "paginated",
+                    flow: epubFlowMode,
                     allowScriptedContent: true
                 });
 
@@ -531,7 +542,8 @@
                         'background': '#ffffff !important',
                         'color': '#18181b !important',
                         'font-family': 'Inter, sans-serif !important',
-                        'line-height': '1.6 !important'
+                        'line-height': '1.6 !important',
+                        'padding': isMobileDevice() ? '10px !important' : '20px !important'
                     }
                 });
 
@@ -558,11 +570,13 @@
                     }
                 });
 
-                document.getElementById('currentPageNum').innerText = "EPUB";
+                document.getElementById('currentPageNum').innerText = "SCROLL";
                 document.getElementById('totalPagesNum').innerText = "MODE";
 
-                // Attach Mouse Wheel Navigation listener
-                attachEpubWheelNavigation();
+                // Attach Mouse Wheel Navigation listener for desktop
+                if (!isMobileDevice()) {
+                    attachEpubWheelNavigation();
+                }
 
             } catch (e) {
                 console.error("EPUB render failed:", e);
@@ -570,15 +584,14 @@
             }
         }
 
-        // Mouse Wheel scrolling to navigate EPUB pages
+        // Mouse Wheel scrolling to navigate EPUB pages (Desktop)
         function attachEpubWheelNavigation() {
             const container = document.getElementById('epubContainer');
             if (!container) return;
 
             const handleWheel = (e) => {
-                if (currentFormat !== 'epub' || !epubRendition) return;
+                if (currentFormat !== 'epub' || !epubRendition || isMobileDevice()) return;
                 
-                // Throttle wheel turns so pages don't flip too rapidly
                 if (wheelThrottleTimer) return;
                 
                 if (e.deltaY > 0) {
@@ -594,7 +607,6 @@
 
             container.onwheel = handleWheel;
 
-            // Also attach inside iframe document when rendered
             if (epubRendition) {
                 epubRendition.on('wheel', handleWheel);
             }
