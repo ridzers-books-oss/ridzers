@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R.N</title>
+    <title>The Archive Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -93,19 +93,23 @@
             box-shadow: -10px 25px 30px rgba(0,0,0,0.9), 0 0 20px rgba(217, 119, 6, 0.4);
         }
 
-        /* Hide Scrollbars and Lock Horizontal Overflow for EPUB Containers */
-        #epubContainer, #epubViewerArea {
+        /* Lock down horizontal scrolling and hide scrollbars globally for ePub.js containers and generated IDs */
+        #epubContainer, #epubViewerArea, [id^="epubjs-container-"] {
             overflow-x: hidden !important;
             max-width: 100% !important;
+            width: 100% !important;
         }
         
         #epubContainer::-webkit-scrollbar,
-        #epubViewerArea::-webkit-scrollbar {
-            display: none;
+        #epubViewerArea::-webkit-scrollbar,
+        [id^="epubjs-container-"]::-webkit-scrollbar {
+            display: none !important;
+            width: 0px !important;
         }
-        #epubContainer {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        
+        #epubContainer, [id^="epubjs-container-"] {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -549,6 +553,7 @@
                     allowScriptedContent: true
                 });
 
+                // Inject CSS into rendition themes to explicitly hide scrollbars and prevent horizontal scrolling inside iframe elements
                 epubRendition.themes.default({
                     'body': {
                         'background': '#ffffff !important',
@@ -559,6 +564,10 @@
                         'overflow-x': 'hidden !important',
                         'max-width': '100% !important'
                     },
+                    'html': {
+                        'overflow-x': 'hidden !important',
+                        'max-width': '100% !important'
+                    },
                     'img': {
                         'max-width': '100% !important',
                         'height': 'auto !important'
@@ -566,6 +575,26 @@
                 });
 
                 await epubRendition.display();
+
+                // Also inject direct stylesheet into generated iframe contents when hooks are triggered
+                epubRendition.hooks.content.register(function(contents) {
+                    const doc = contents.document;
+                    if (doc) {
+                        const style = doc.createElement('style');
+                        style.innerHTML = `
+                            body, html {
+                                overflow-x: hidden !important;
+                                max-width: 100% !important;
+                                box-sizing: border-box !important;
+                            }
+                            ::-webkit-scrollbar {
+                                display: none !important;
+                                width: 0px !important;
+                            }
+                        `;
+                        doc.head.appendChild(style);
+                    }
+                });
 
                 const tocContainer = document.getElementById('chapterListContainer');
                 tocContainer.innerHTML = '';
