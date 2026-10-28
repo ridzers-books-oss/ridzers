@@ -68,6 +68,9 @@ h2{font:800 34px Cinzel,serif;text-align:center;margin:30px 0 22px;color:#f6e3b4
 #webtoon .col{width:calc(min(100vw,800px)*var(--z,1));margin:0 auto}
 #webtoon img{display:block;width:100%;height:auto;margin:0;padding:0;border:0}
 #webtoon .end{font:600 14px Inter,sans-serif;color:#c9954f;text-align:center;padding:40px 20px;line-height:1.5}
+#webtoon .end.tbc{display:flex;align-items:center;justify-content:flex-start;gap:14px;text-align:left;padding:26px 22px 40px;background:#000}
+#webtoon .tbc svg{flex:none;max-width:30%;height:auto}
+#webtoon .tbc .tx{font:italic 800 clamp(22px,5.5vw,36px)/1 Inter,sans-serif;color:#f2b705;letter-spacing:.01em;text-shadow:2px 2px 0 #5a3b00,-1px -1px 0 #5a3b00,1px -1px 0 #5a3b00,-1px 1px 0 #5a3b00}
 #side{position:absolute;left:0;top:0;bottom:0;width:min(320px,80vw);z-index:6;background:#18110b;border-right:1px solid #3b2210;transform:translateX(-100%);transition:transform .3s;display:flex;flex-direction:column;color:#e8d3a8}
 #side.open{transform:none}
 #side header{display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid #3b2210;font:700 13px Cinzel,serif}
@@ -378,7 +381,8 @@ async function wtFill(){
     if(!im){
       w.done=true;$('tot').textContent=Math.max(1,n-1);
       const e=document.createElement('div');e.className='end';
-      e.textContent=n==1?`No images found. Put 1.${WT_EXT}, 2.${WT_EXT}, ... in the ${bk.wt} folder.`:'End';
+      if(n==1)e.textContent=`No images found. Put 1.${WT_EXT}, 2.${WT_EXT}, ... in the ${bk.wt} folder.`;
+      else{e.classList.add('tbc');e.innerHTML='<svg viewBox="0 0 120 40" width="96" height="32" aria-hidden="true"><path d="M0 20 L26 0 L26 12 L120 12 L120 28 L26 28 L26 40 Z" fill="#f2b705" stroke="#5a3b00" stroke-width="2" stroke-linejoin="round"/></svg><span class="tx">To Be Continued</span>'}
       col.appendChild(e);break;
     }
     im.dataset.n=n;im.alt='';col.appendChild(im);w.n++;
