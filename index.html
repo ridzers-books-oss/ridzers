@@ -82,6 +82,30 @@ h2{font:800 34px Cinzel,serif;text-align:center;margin:30px 0 22px;color:#f6e3b4
 .foot input{flex:1;accent-color:#c9833a}
 footer{padding:12px;text-align:center;font-size:12px;color:#8a6a40;background:#0a0503cc}
 
+/* ---------- fullscreen: hides every bar, floating button brings them back ---------- */
+body.fs .top,body.fs .bar,body.fs .foot,body.fs footer{display:none}
+#fsExit{display:none;position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:8px;z-index:90;width:40px;height:40px;padding:0;border-radius:50%;opacity:.55}
+#fsExit:hover,#fsExit:active{opacity:1}
+body.fs #fsExit{display:block}
+
+/* ---------- mobile ---------- */
+@media(max-width:768px){
+ body{min-height:100dvh}
+ .top{padding:8px 10px}.top h1{font-size:17px}
+ .top .lbl,.bar .lbl,.bar small,.bar .themeBtn{display:none}
+ .top button,.bar button{padding:7px 10px}
+ .bar{flex-wrap:nowrap;gap:6px;padding:6px 8px}
+ .bar .g{flex:none;gap:6px}
+ .bar>div:nth-child(2){min-width:0!important;overflow:hidden}
+ .bar h3{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .pill{padding:5px 8px}
+ h2{margin:20px 0 16px;font-size:26px}
+ #zoomBox{display:none!important}
+ #webtoon .col{width:100%}
+ #webtoon .tbc .tx{font-size:clamp(20px,6vw,28px)}
+ #scroll{padding:8px 4px;gap:8px}
+}
+
 /* ---------- Minecraft theme ---------- */
 body.mc{font-family:'Pixelify Sans',monospace;color:#fff;background:#1b130b conic-gradient(#21170d 25%,#190f07 0 50%,#21170d 0 75%,#190f07 0) 0 0/32px 32px}
 .mc h1,.mc h2,.mc .bar h3{font-family:'Pixelify Sans',monospace;font-weight:700;letter-spacing:.04em}
@@ -117,8 +141,8 @@ body.mc{font-family:'Pixelify Sans',monospace;color:#fff;background:#1b130b coni
 <div class="top">
   <h1>THE ARCHIVE</h1>
   <div style="display:flex;gap:8px">
-    <button onclick="toggleTheme()" title="Switch theme"><i class="fa-solid fa-cube"></i> <span class="thTxt">Minecraft</span></button>
-    <button onclick="toggleFS(document.documentElement)"><i class="fa-solid fa-expand"></i> Fullscreen</button>
+    <button onclick="toggleTheme()" title="Switch theme"><i class="fa-solid fa-cube"></i> <span class="thTxt lbl">Minecraft</span></button>
+    <button onclick="toggleFS()" title="Fullscreen"><i class="fa-solid fa-expand"></i> <span class="lbl">Fullscreen</span></button>
   </div>
 </div>
 
@@ -130,11 +154,12 @@ body.mc{font-family:'Pixelify Sans',monospace;color:#fff;background:#1b130b coni
   </div>
 </main>
 <footer>&copy; 2026 . R.N</footer>
+<button id="fsExit" onclick="toggleFS()" title="Show bars"><i class="fa-solid fa-compress"></i></button>
 
 <div id="reader" hidden>
   <div class="bar">
     <div class="g">
-      <button onclick="closeReader()"><i class="fa-solid fa-arrow-left"></i> Shelf</button>
+      <button onclick="closeReader()"><i class="fa-solid fa-arrow-left"></i> <span class="lbl">Shelf</span></button>
       <button id="tocBtn" hidden onclick="$('side').classList.toggle('open')" title="Contents"><i class="fa-solid fa-list-ul"></i></button>
     </div>
     <div style="flex:1;min-width:130px"><h3 id="rTitle"></h3><small id="rAuthor"></small></div>
@@ -146,8 +171,8 @@ body.mc{font-family:'Pixelify Sans',monospace;color:#fff;background:#1b130b coni
         <button onclick="setZoom(zoom+.25)" title="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
         <button onclick="setZoom(1)">Reset</button>
       </div>
-      <button onclick="toggleTheme()" title="Switch theme"><i class="fa-solid fa-cube"></i></button>
-      <button onclick="toggleFS($('reader'))" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
+      <button class="themeBtn" onclick="toggleTheme()" title="Switch theme"><i class="fa-solid fa-cube"></i></button>
+      <button onclick="toggleFS()" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
       <div class="pill"><i class="fa-solid fa-bookmark" style="color:#d9a24a"></i><span id="cur">1</span>/<span id="tot">1</span></div>
     </div>
   </div>
@@ -432,11 +457,22 @@ function closeReader(){
   if(document.fullscreenElement&&document.fullscreenElement!==document.documentElement)document.exitFullscreen().catch(()=>{});
   renderShelf();
 }
-function toggleFS(el){document.fullscreenElement?document.exitFullscreen():el.requestFullscreen().catch(()=>{})}
+/* hides all bars; also uses native fullscreen where the browser allows it (iPhone Safari does not) */
+function setFS(on){
+  document.body.classList.toggle('fs',on);
+  requestAnimationFrame(()=>{if(!$('reader').hidden&&view=='book')layout();try{rend&&rend.resize()}catch(e){}});
+}
+function toggleFS(){
+  const on=!document.body.classList.contains('fs'),el=document.documentElement;
+  setFS(on);
+  if(on){if(el.requestFullscreen)el.requestFullscreen().catch(()=>{})}
+  else if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)setFS(false)});
 
 document.addEventListener('keydown',e=>{
   if($('reader').hidden)return;
-  if(e.key=='Escape'&&!document.fullscreenElement)closeReader();
+  if(e.key=='Escape'&&!document.fullscreenElement){if(document.body.classList.contains('fs'))setFS(false);else closeReader()}
   if(view=='webtoon'){
     if(e.key=='+'||e.key=='=')setZoom(zoom+.25);
     else if(e.key=='-')setZoom(zoom-.25);
