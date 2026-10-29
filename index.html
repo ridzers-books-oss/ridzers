@@ -81,7 +81,6 @@ h2{font:800 34px Cinzel,serif;text-align:center;margin:30px 0 22px;color:#f6e3b4
 #webtoon .col{width:calc(min(100vw,800px)*var(--z,1));margin:0 auto}
 #webtoon,#webtoon *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #webtoon .pg{display:block;width:100%;margin:0;padding:0;border:0;background-repeat:no-repeat;background-size:100% 100%;pointer-events:none;-webkit-user-drag:none}
-#webtoon .nextch{margin-top:6px}
 #webtoon .end{font:600 14px Inter,sans-serif;color:#c9954f;text-align:center;padding:40px 20px;line-height:1.5}
 #webtoon .end.tbc{display:flex;align-items:center;justify-content:flex-start;gap:14px;text-align:left;padding:26px 22px 40px;background:#000}
 #webtoon .tbc svg{flex:none;max-width:30%;height:auto}
@@ -536,7 +535,7 @@ function buildScroll(saved){
   $('cur').textContent=saved;
 }
 
-/* ---------- WEBTOON READER: one long scroll of webtoon/<chapter>/1.png, 2.png, ... ---------- */
+/* ---------- WEBTOON READER: all chapters in one continuous scroll (webtoon/<chapter>/1.png, 2.png, ...) ---------- */
 /* the spine slides up out of the shelf and grows toward you (no cover), then the reader fades in */
 async function openComic(ch,el){
   const my=++tok;mode='comic';fmt='pdf';zoom=1;wtCh=ch;destroyEpub();leaves=[];
@@ -563,72 +562,121 @@ async function openComic(ch,el){
   openWebtoon(my,ch,wtPageOf(ch));
   if(anim){await anim;g.remove()}
 }
-/* "Next chapter" button at the end of a chapter */
-function nextChapter(){
-  if(wtCh>=comicCount-1)return;
-  const my=++tok;wtCh++;
-  bk={id:'comic',title:'Chapter '+wtCh,author:AUTHOR};
-  $('rTitle').textContent='Chapter '+wtCh;
-  openWebtoon(my,wtCh,1);
-}
-let wt={my:0,ch:0,n:1,done:false,busy:false,target:1};
+
+const WT_AHEAD=5;   /* how many pages are downloaded in advance (raise for faster, lower to save data) */
+const WT_TRIES=3;   /* a page must fail this many times in a row before it counts as "missing" */
+let wt={my:0,ch:0,n:1,done:false,busy:false,positioned:false,startCh:0,target:1,len:{},cnt:{},raf:0};
+const wtCache=new Map();
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const wtLoad=(ch,n)=>new Promise(r=>{const im=new Image();im.decoding='async';im.onload=()=>r(im);im.onerror=()=>r(null);im.src=wtSrc(ch,n)});
+
+/* downloads AND decodes a page, retrying a few times so a hiccup is not mistaken for "end of chapter" */
+async function wtTry(ch,n){
+  for(let i=0;i<WT_TRIES;i++){
+    const im=await wtLoad(ch,n);
+    if(im){try{await im.decode()}catch(e){}return im}
+    if(i<WT_TRIES-1)await wait(350*(i+1));
+  }
+  return null;
+}
+/* one shared promise per page: prefetching and the real loader never download the same page twice */
+function wtGet(ch,n){
+  const k=ch+'/'+n;
+  let p=wtCache.get(k);
+  if(!p){p=wtTry(ch,n);wtCache.set(k,p)}
+  return p;
+}
+
 /* pages are drawn as background tiles, not <img>: nothing to drag, right-click, copy or open in a new tab */
-function wtPageEl(im,n){
-  const d=document.createElement('div');d.className='pg';d.dataset.n=n;
+function wtPageEl(im,n,ch){
+  const d=document.createElement('div');d.className='pg';d.dataset.n=n;d.dataset.ch=ch;
   d.style.aspectRatio=im.naturalWidth+'/'+im.naturalHeight;
   d.style.backgroundImage=`url("${im.src}")`;
   return d;
 }
-function wtEnd(w,n){
-  w.done=true;$('tot').textContent=Math.max(1,n-1);
-  const col=$('wtCol'),e=document.createElement('div');e.className='end';
-  if(n==1)e.textContent=`No images found. Put 1.${WT_EXT}, 2.${WT_EXT}, ... in the ${WT_DIR}/${w.ch} folder.`;
+/* the very end of the last chapter (only ever added once) */
+function wtEnd(w,none){
+  if(w.done)return;
+  w.done=true;w.positioned=true;
+  const e=document.createElement('div');e.className='end';
+  if(none)e.textContent=`No images found. Put 1.${WT_EXT}, 2.${WT_EXT}, ... in the ${WT_DIR}/${w.ch} folder.`;
   else{e.classList.add('tbc');e.innerHTML='<svg viewBox="0 0 120 40" width="96" height="32" aria-hidden="true"><path d="M0 20 L26 0 L26 12 L120 12 L120 28 L26 28 L26 40 Z" fill="#f2b705" stroke="#5a3b00" stroke-width="2" stroke-linejoin="round"/></svg><span class="tx">To Be Continued</span>'}
-  col.appendChild(e);
-  if(n>1&&comicCount&&w.ch<comicCount-1){
-    const b=document.createElement('div');b.className='end';
-    b.innerHTML='<button class="nextch" onclick="nextChapter()">Next chapter <i class="fa-solid fa-chevron-right"></i></button>';
-    col.appendChild(b);
-  }
+  $('wtCol').appendChild(e);
 }
+
 async function openWebtoon(my,ch,start){
   showView('webtoon');
   const s=$('webtoon'),col=$('wtCol'),saved=start||wtPageOf(ch);
-  col.innerHTML='';zoomApply();s.scrollTop=0;
-  const w=wt={my,ch,n:1,done:false,busy:false,target:saved};
+  col.innerHTML='';wtCache.clear();zoomApply();s.scrollTop=0;
+  wtCh=ch;
+  const w=wt={my,ch,n:1,startCh:ch,target:saved,positioned:false,done:false,busy:false,len:{},cnt:{},raf:0};
   save(WT_LAST,ch);
   $('cur').textContent=saved;$('tot').textContent='…';
   s.onscroll=()=>{wtFill();wtTrack()};
-  /* pages 1..saved load in parallel so opening on a late page is quick; the rest load as you scroll */
-  const first=await Promise.all(Array.from({length:saved},(_,i)=>wtLoad(ch,i+1)));
-  if(w!==wt||my!=tok)return;
-  for(let i=0;i<first.length;i++){
-    const im=first[i];
-    if(!im){wtEnd(w,i+1);break}
-    col.appendChild(wtPageEl(im,i+1));w.n=i+2;
-  }
-  const el=col.querySelector(`.pg[data-n="${saved}"]`);
-  if(el)s.scrollTop=el.offsetTop;
+  /* if you resume on a late page, pages 1..saved all download in parallel */
+  for(let i=1;i<=Math.min(saved,40);i++)wtGet(ch,i);
   s.focus();
   await wtFill();
 }
+
+/* ONE loader, one page at a time, always in order. Pages are appended exactly once,
+   and when a chapter ends the next chapter simply continues in the same scroll. */
 async function wtFill(){
   const w=wt,s=$('webtoon'),col=$('wtCol');
-  if(w.busy||w.done)return;w.busy=true;
-  while(w===wt&&w.my==tok&&!w.done&&s.scrollHeight-s.scrollTop-s.clientHeight<2500){
-    const n=w.n,im=await wtLoad(w.ch,n);
-    if(w!==wt||w.my!=tok)break;
-    if(!im){wtEnd(w,n);break}
-    col.appendChild(wtPageEl(im,n));w.n++;
-    $('tot').textContent=(w.n-1)+'+';
-  }
-  w.busy=false;
+  if(w.busy||w.done)return;
+  w.busy=true;
+  const live=()=>w===wt&&w.my==tok;
+  try{
+    while(live()&&!w.done){
+      /* stop once there are a few screens of pages below the reader */
+      if(w.positioned&&s.scrollHeight-s.scrollTop-s.clientHeight>=Math.max(3500,s.clientHeight*3))break;
+      const ch=w.ch,n=w.n,more=!comicCount||ch<comicCount-1;
+      /* start downloading the next pages now, while this one is still being handled */
+      for(let i=1;i<=WT_AHEAD;i++)if(!w.len[ch]||n+i<=w.len[ch])wtGet(ch,n+i);
+      /* if the page after this one does not exist, the chapter is about to end: warm up the next chapter */
+      if(more)wtGet(ch,n+1).then(x=>{if(!x&&live())wtGet(ch+1,1)});
+      const im=await wtGet(ch,n);
+      if(!live())break;
+      if(!im){
+        /* chapter folder has no images at all */
+        if(n==1){wtEnd(w,!col.querySelector('.pg'));break}
+        w.len[ch]=n-1;
+        if(!w.positioned){            /* saved page was past the end of the chapter: land on its last page */
+          w.positioned=true;
+          const last=col.lastElementChild;if(last&&last.dataset.n)s.scrollTop=last.offsetTop;
+        }
+        if(!more){wtEnd(w);break}      /* last chapter: To Be Continued */
+        w.ch++;w.n=1;                  /* otherwise just keep going into the next chapter */
+        continue;
+      }
+      const el=wtPageEl(im,n,ch);
+      col.appendChild(el);
+      wtCache.delete(ch+'/'+n);
+      w.cnt[ch]=n;w.n++;
+      if(!w.positioned&&ch==w.startCh&&n==w.target){
+        w.positioned=true;s.scrollTop=el.offsetTop;wtTrack();
+      }
+    }
+  }finally{w.busy=false}
 }
+
+/* works out which page/chapter is on screen; updates the title, counter and saved progress */
 function wtTrack(){
-  const s=$('webtoon'),y=s.scrollTop+s.clientHeight*.3;let p=1;
-  for(const im of $('wtCol').children){if(!im.dataset.n)continue;if(im.offsetTop<=y)p=+im.dataset.n;else break}
-  $('cur').textContent=p;save('wt-ch-'+wt.ch,p);save(WT_LAST,wt.ch);
+  const w=wt;
+  if(!w.positioned||w.raf)return;       /* ignore scroll events until we have jumped to the saved page */
+  w.raf=requestAnimationFrame(()=>{
+    w.raf=0;
+    if(w!==wt)return;
+    const s=$('webtoon'),y=s.scrollTop+s.clientHeight*.3;
+    let cur=null;
+    for(const el of $('wtCol').children){if(!el.dataset.n)continue;if(el.offsetTop<=y)cur=el;else break}
+    if(!cur)return;
+    const ch=+cur.dataset.ch,p=+cur.dataset.n;
+    if(ch!==wtCh){wtCh=ch;bk={id:'comic',title:'Chapter '+ch,author:AUTHOR};$('rTitle').textContent='Chapter '+ch}
+    $('cur').textContent=p;
+    $('tot').textContent=w.len[ch]||((w.cnt[ch]||p)+'+');
+    save('wt-ch-'+ch,p);save(WT_LAST,ch);
+  });
 }
 /* block right-click menu, drag and long-press save on the webtoon */
 ['contextmenu','dragstart','selectstart'].forEach(t=>$('webtoon').addEventListener(t,e=>e.preventDefault()));
@@ -665,7 +713,7 @@ async function openEpub(my){
 function closeReader(){
   hideFmtHint();tok++;const rd=$('reader');rd.classList.remove('on');rd.hidden=true;
   document.querySelectorAll('.ghost').forEach(g=>g.remove());
-  destroyEpub();leaves=[];$('book').innerHTML='';$('scroll').innerHTML='';$('wtCol').innerHTML='';
+  destroyEpub();leaves=[];$('book').innerHTML='';$('scroll').innerHTML='';$('wtCol').innerHTML='';wtCache.clear();
   if(document.fullscreenElement&&document.fullscreenElement!==document.documentElement)document.exitFullscreen().catch(()=>{});
   renderShelf();
 }
