@@ -204,8 +204,8 @@ const $=id=>document.getElementById(id);
 const AUTHOR='Liam L. Larmark';
 /* Folder layout (GitHub is case-sensitive):
    book/book1.pdf, book/book1.epub ... book/book8.*
-   webtoon/book1/1.jpeg, 2.jpeg ... webtoon/book8/1.jpeg ... */
-const BOOK_DIR='book',WT_DIR='webtoon',WT_EXT='jpeg';
+   webtoon/book1/1.png, 2.png ... webtoon/book8/1.png ... */
+const BOOK_DIR='book',WT_DIR='webtoon',WT_EXT='png';
 // [title, cover/spine color, text color, height, width, shelf row]
 const SPECS=[
  ['Book 1','#0f0f10','#e8c777',250,64,1],['Book 2','#2d2d30','#e8c777',226,56,1],
@@ -384,7 +384,7 @@ function buildScroll(saved){
   $('cur').textContent=saved;
 }
 
-/* ---------- WEBTOON: webtoon/bookN/1.jpeg, 2.jpeg, ... until one is missing ---------- */
+/* ---------- WEBTOON: webtoon/bookN/1.png, 2.png, ... until one is missing ---------- */
 let wt={my:0,n:1,done:false,busy:false,target:1};
 const wtLoad=n=>new Promise(r=>{const im=new Image();im.decoding='async';im.onload=()=>r(im);im.onerror=()=>r(null);im.src=`${bk.wt}/${n}.${WT_EXT}`});
 async function openWebtoon(my){
