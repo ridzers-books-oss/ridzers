@@ -108,7 +108,7 @@ body.fs #fsExit{display:block}
 @keyframes fmtGlow{0%,100%{box-shadow:0 0 4px #e9c98766}50%{box-shadow:0 0 0 4px #e9c98744,0 0 20px #e9c987}}
 #fmtTip{position:fixed;z-index:95;max-width:min(260px,calc(100vw - 16px));padding:10px 12px;border-radius:8px;background:#2a1708;border:1px solid #e9c987;color:#f6e3b4;font:500 13px/1.45 Inter,sans-serif;box-shadow:0 10px 30px #000c;cursor:pointer;animation:tipIn .35s ease-out}
 #fmtTip::before{content:"";position:absolute;top:-6px;left:var(--ax,50%);margin-left:-5px;width:10px;height:10px;background:#2a1708;border-left:1px solid #e9c987;border-top:1px solid #e9c987;transform:rotate(45deg)}
-#fmtTip small{display:block;margin-top:4px;font-size:11px;color:#c9954f;text-align:left}
+#fmtTip #fmtNever{display:block;width:100%;margin-top:8px;padding:6px 8px;font-size:12px;text-align:center}
 @keyframes tipIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .mc #fmtTip{border-radius:0;font-family:'Pixelify Sans',monospace;font-size:15px;border:3px solid #120a04;background:#6b4a24;color:#fff}
 .mc #fmtTip::before{background:#6b4a24;border-left:3px solid #120a04;border-top:3px solid #120a04}
@@ -360,30 +360,37 @@ function destroyEpub(){
   try{eb&&eb.destroy()}catch(e){}
   rend=eb=null;$('epubArea').innerHTML='';
 }
-/* first-visit hint: shown once ever (remembered in localStorage), the first time a book is opened */
+/* format hint: shown every time a book is opened, until the visitor taps "never show again" (remembered in localStorage) */
 const HINT_KEY='archive_fmt_hint_seen';
 let hintTimer=0;
 function hideFmtHint(){
   clearTimeout(hintTimer);
   const b=$('fmtBtn');if(b)b.classList.remove('glow');
   const t=$('fmtTip');if(t)t.remove();
-  document.removeEventListener('pointerdown',hideFmtHint,true);
+  document.removeEventListener('pointerdown',hintTap,true);
+}
+function neverFmtHint(){
+  try{localStorage.setItem(HINT_KEY,'1')}catch(e){}
+  hideFmtHint();
+}
+function hintTap(e){
+  if(e.target.closest&&e.target.closest('#fmtNever')){neverFmtHint();return}
+  hideFmtHint();
 }
 function showFmtHint(){
   try{if(localStorage.getItem(HINT_KEY))return}catch(e){return}
   const b=$('fmtBtn');
   if(!b||b.hidden||$('reader').hidden||mode=='comic')return;
-  try{localStorage.setItem(HINT_KEY,'1')}catch(e){}
   hideFmtHint();
   b.classList.add('glow');
   const tip=document.createElement('div');tip.id='fmtTip';
-  tip.innerHTML='<i class="fa-solid fa-book-bookmark"></i> You can change the format to <b>EPUB</b> for better reading here.<small>Tap anywhere to dismiss</small>';
+  tip.innerHTML='<i class="fa-solid fa-book-bookmark"></i> You can change the format to <b>EPUB</b> for better reading here.<button id="fmtNever" type="button">Tap here to never show again</button>';
   document.body.appendChild(tip);
   const r=b.getBoundingClientRect(),tw=tip.offsetWidth;
   const left=Math.max(8,Math.min(innerWidth-tw-8,r.left+r.width/2-tw/2));
   tip.style.left=left+'px';tip.style.top=(r.bottom+12)+'px';
   tip.style.setProperty('--ax',(r.left+r.width/2-left)+'px');
-  document.addEventListener('pointerdown',hideFmtHint,true);
+  document.addEventListener('pointerdown',hintTap,true);
   hintTimer=setTimeout(hideFmtHint,12000);
 }
 
