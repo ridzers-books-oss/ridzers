@@ -34,6 +34,19 @@ h2{font:800 34px Cinzel,serif;text-align:center;margin:30px 0 22px;color:#f6e3b4
 .spine em{font:700 9px Inter,sans-serif;font-style:normal;color:#7fe0a8;min-height:11px;z-index:1}
 .ghost{position:fixed;margin:0!important;z-index:70;pointer-events:none;transform-origin:center;box-shadow:0 30px 50px #000c}
 @media(max-width:700px){.spine{--k:.78}.row{min-height:240px;padding:0 6px}.case{padding:14px 12px 0}h2{font-size:26px}}
+
+/* ---------- webtoon shelf: many thin spines, one per image ---------- */
+.sechead{display:flex;justify-content:center;margin:-8px 0 18px}
+.row.crow{min-height:262px;justify-content:flex-start;padding:0 18px}
+.spine.thin{padding:10px 0}
+.spine.thin .mid{padding:2px 0}
+.spine.thin b{font-size:calc(11px*var(--k));letter-spacing:.04em}
+.spine.thin .bd{height:3px;box-shadow:none}
+.spine.thin.last{transform:translateY(-14px);box-shadow:inset 0 3px 3px #fff3,inset 0 -5px 5px #0006,0 0 0 2px #e9c987,0 0 16px #e9c987aa}
+.spine.thin.last:hover{transform:translateY(-22px)}
+.spine.thin.last::after{content:"";position:absolute;top:-2px;left:50%;margin-left:-4px;width:8px;height:16px;background:#e9c987;clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%)}
+@media(max-width:700px){.row.crow{min-height:206px;padding:0 6px}}
+
 /* reader */
 #reader{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 40%,#2a1709,#050302 80%);opacity:0;transition:opacity .4s}
 #reader.on{opacity:1}
@@ -125,6 +138,11 @@ body.mc{font-family:'Pixelify Sans',monospace;color:#fff;background:#1b130b coni
 .mc .spine b{font-size:calc(17px*var(--k));font-weight:700;letter-spacing:.08em;text-shadow:none}
 .mc .spine u{font-size:calc(10px*var(--k));font-weight:500;opacity:1;letter-spacing:.12em}
 .mc .spine em{font-family:inherit;font-size:11px;color:#3fe07a;text-shadow:1px 1px 0 #000}
+.mc .spine.thin b{font-size:calc(12px*var(--k));letter-spacing:.02em}
+.mc .spine.thin .bd{height:4px}
+.mc .spine.thin.last{transform:translateY(-12px);box-shadow:inset 5px 0 0 #fff3,inset -5px 0 0 #0004,0 0 0 3px #f2b705}
+.mc .spine.thin.last:hover{transform:translateY(-18px)}
+.mc .spine.thin.last::after{background:#f2b705}
 .mc #reader{background:#1b130b conic-gradient(#21170d 25%,#190f07 0 50%,#21170d 0 75%,#190f07 0) 0 0/32px 32px}
 .mc .bar,.mc .foot{background:#6b4a24;border-color:#2e1c0a;border-width:4px}
 .mc .bar small{color:#f3d9a0;font-size:13px}
@@ -152,6 +170,10 @@ body.mc{font-family:'Pixelify Sans',monospace;color:#fff;background:#1b130b coni
     <div class="row" id="row1"></div><div class="plank"></div>
     <div class="row" id="row2"></div><div class="plank"></div>
   </div>
+
+  <h2>Webtoons</h2>
+  <div class="sechead"><button id="contBtn" hidden onclick="continueComic()"><i class="fa-solid fa-bookmark"></i> <span id="contTxt"></span></button></div>
+  <div class="case" id="comicCase"></div>
 </main>
 <footer>&copy; 2026 . R.N</footer>
 <button id="fsExit" onclick="toggleFS()" title="Show bars"><i class="fa-solid fa-compress"></i></button>
@@ -164,7 +186,7 @@ body.mc{font-family:'Pixelify Sans',monospace;color:#fff;background:#1b130b coni
     </div>
     <div style="flex:1;min-width:130px"><h3 id="rTitle"></h3><small id="rAuthor"></small></div>
     <div class="g">
-      <button id="fmtBtn" onclick="setFormat(FMTS[(FMTS.indexOf(fmt)+1)%FMTS.length])" title="Switch between PDF, EPUB and Webtoon"><i id="fmtIc" class="fa-solid fa-file-pdf"></i> <span id="fmtTxt">PDF</span></button>
+      <button id="fmtBtn" onclick="setFormat(FMTS[(FMTS.indexOf(fmt)+1)%FMTS.length])" title="Switch between PDF and EPUB"><i id="fmtIc" class="fa-solid fa-file-pdf"></i> <span id="fmtTxt">PDF</span></button>
       <div class="pill" id="zoomBox">
         <button onclick="setZoom(zoom-.25)" title="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
         <span id="zl">100%</span>
@@ -204,18 +226,19 @@ const $=id=>document.getElementById(id);
 const AUTHOR='Liam L. Larmark';
 /* Folder layout (GitHub is case-sensitive):
    book/book1.pdf, book/book1.epub ... book/book8.*
-   webtoon/book1/1.png, 2.png ... webtoon/book8/1.png ... */
-const BOOK_DIR='book',WT_DIR='webtoon',WT_EXT='png';
+   webtoon/1.png, webtoon/2.png, webtoon/3.png ...   (one thin spine on the Webtoons shelf per image)
+   WT_COUNT: leave 0 to detect the number of images automatically, or set it (e.g. 120) to skip detection. */
+const BOOK_DIR='book',WT_DIR='webtoon',WT_EXT='png',WT_COUNT=0,WT_KEY='wt-comic';
 // [title, cover/spine color, text color, height, width, shelf row]
 const SPECS=[
  ['Book 1','#0f0f10','#e8c777',250,64,1],['Book 2','#2d2d30','#e8c777',226,56,1],
  ['Book 3','#4a4a4e','#f3e3b5',240,70,1],['Book 4','#6a6a6e','#ffffff',212,52,1],
  ['Book 5','#8c8c90','#111111',244,62,2],['Book 6','#b0b0b3','#111111',222,58,2],
  ['Book 7','#d4d4d6','#111111',236,66,2],['Book 8','#f6f6f4','#111111',216,54,2]];
-const BOOKS=SPECS.map((s,i)=>({id:'book-'+(i+1),title:s[0],author:AUTHOR,pdf:`${BOOK_DIR}/book${i+1}.pdf`,epub:`${BOOK_DIR}/book${i+1}.epub`,wt:`${WT_DIR}/book${i+1}`,c:s[1],t:s[2],h:s[3],w:s[4],row:s[5],lean:i==3}));
+const BOOKS=SPECS.map((s,i)=>({id:'book-'+(i+1),title:s[0],author:AUTHOR,pdf:`${BOOK_DIR}/book${i+1}.pdf`,epub:`${BOOK_DIR}/book${i+1}.epub`,c:s[1],t:s[2],h:s[3],w:s[4],row:s[5],lean:i==3}));
 const KEY='gentlemans_archive_progress_v8';
-const FMTS=['pdf','epub','webtoon'];
-let bk,pdf,N=50,L=1,c=0,ratio=.7,W=0,H=0,BW=0,zoom=1,fmt='pdf',view='',tok=0,leaves=[],eb=null,rend=null;
+const FMTS=['pdf','epub'];
+let bk,pdf,N=50,L=1,c=0,ratio=.7,W=0,H=0,BW=0,zoom=1,fmt='pdf',view='',tok=0,leaves=[],eb=null,rend=null,mode='book';
 const isMobile=()=>innerWidth<768;
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
 const save=(id,p)=>{try{const d=load();d[id]={page:p,updatedAt:new Date().toISOString()};localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
@@ -241,6 +264,63 @@ function renderShelf(){
     s.onpointerenter=()=>docFor(b);
     $('row'+b.row).appendChild(s);
   });
+  renderComics();
+}
+
+/* ---------- WEBTOON SHELF: one thin spine per image (webtoon/1.png, 2.png, ...) ---------- */
+const WT_COLORS=['#7a1f1f','#1f3a5f','#2f5d3a','#5b3a7a','#a8631a','#1d5c63','#8a2d52','#3b3b3b'];
+let comicCount=0,comicReady=false;
+const wtSrc=n=>`${WT_DIR}/${n}.${WT_EXT}`;
+/* counts images with cheap HEAD requests, 10 at a time, until one is missing */
+async function countComic(){
+  const ok=n=>fetch(wtSrc(n),{method:'HEAD'}).then(r=>r.ok).catch(()=>false);
+  let n=0;
+  while(n<1000){
+    const res=await Promise.all(Array.from({length:10},(_,i)=>ok(n+i+1)));
+    const k=res.indexOf(false);
+    if(k<0){n+=10;continue}
+    return n+k;
+  }
+  return n;
+}
+async function initComics(){
+  comicCount=WT_COUNT||await countComic();
+  comicReady=true;renderComics();
+}
+const rnd=n=>((n*9301+49297)%233280)/233280;
+function renderComics(){
+  const cc=$('comicCase');if(!cc)return;
+  cc.innerHTML='';
+  const rec=load()[WT_KEY],last=rec?Math.min(rec.page||1,comicCount||1):0;
+  $('contBtn').hidden=!(last>1);
+  if(last>1)$('contTxt').textContent='Continue reading · page '+last;
+  if(!comicCount){
+    cc.innerHTML=`<div class="row crow" style="justify-content:center;align-items:center;min-height:120px;color:#c9954f;text-align:center;font-size:14px">${comicReady?`No images found. Put 1.${WT_EXT}, 2.${WT_EXT}, ... in the ${WT_DIR} folder.`:'Loading…'}</div><div class="plank"></div>`;
+    return;
+  }
+  const mob=innerWidth<=700,k=mob?.78:1;
+  const avail=cc.clientWidth-(mob?24:56)-(mob?12:36);
+  const per=Math.max(5,Math.floor(avail/(21*k+2)));
+  let row=null;
+  for(let n=1;n<=comicCount;n++){
+    if((n-1)%per==0){
+      row=document.createElement('div');row.className='row crow';
+      cc.appendChild(row);
+      const pl=document.createElement('div');pl.className='plank';cc.appendChild(pl);
+    }
+    const w=13+Math.floor(rnd(n)*9),h=190+Math.floor(rnd(n+777)*60),col=WT_COLORS[Math.floor(rnd(n+31)*WT_COLORS.length)];
+    const s=document.createElement('div');
+    s.className='spine thin'+(n==last?' last':'');
+    s.dataset.n=n;s.title='Page '+n;
+    s.style.cssText=`--c:${col};--t:#f3e3b5;--h:${h}px;--w:${w}px`;
+    s.innerHTML=`<span class="bd" style="top:8px"></span><span class="bd" style="bottom:8px"></span><div class="mid"><b>${n}</b></div>`;
+    s.onclick=()=>openComic(n,s);
+    row.appendChild(s);
+  }
+}
+function continueComic(){
+  const n=(load()[WT_KEY]||{}).page||1;
+  openComic(n,$('comicCase').querySelector(`.spine[data-n="${n}"]`));
 }
 
 /* ---------- view switching: only one view is ever visible ---------- */
@@ -250,8 +330,9 @@ function showView(v){
   ['foot','prev','next'].forEach(i=>$(i).hidden=v!='book');
   $('zoomBox').hidden=v!='book'&&v!='webtoon';
   $('tocBtn').hidden=v!='epub';
+  $('fmtBtn').hidden=mode=='comic';
   $('fmtTxt').textContent=fmt.toUpperCase();
-  $('fmtIc').className={pdf:'fa-solid fa-file-pdf',epub:'fa-solid fa-book-bookmark',webtoon:'fa-solid fa-images'}[fmt];
+  $('fmtIc').className={pdf:'fa-solid fa-file-pdf',epub:'fa-solid fa-book-bookmark'}[fmt]||'fa-solid fa-file-pdf';
   $('side').classList.remove('open');
   if(v!='epub')destroyEpub();
   if(v!='webtoon')$('wtCol').innerHTML='';
@@ -264,7 +345,6 @@ function destroyEpub(){
 async function setFormat(f){
   const my=++tok;fmt=f;
   if(f=='epub')await openEpub(my);
-  else if(f=='webtoon')openWebtoon(my);
   else{
     destroyEpub();showView(isMobile()?'scroll':'book');$('tot').textContent=N;
     if(view=='book'){layout();go(c)}else if($('scroll').onscroll)$('scroll').onscroll();
@@ -275,7 +355,7 @@ async function setFormat(f){
 const T=(x,y,s,r)=>`perspective(1800px) translate(${x}px,${y}px) scale(${s}) rotateY(${r}deg)`;
 const PX=()=>Math.min(2200,Math.round(W*2.5));
 async function openBook(b,el){
-  const my=++tok;bk=b;fmt='pdf';zoom=1;c=0;pdf=null;N=50;ratio=.7;leaves=[];destroyEpub();
+  const my=++tok;bk=b;mode='book';fmt='pdf';zoom=1;c=0;pdf=null;N=50;ratio=.7;leaves=[];destroyEpub();
   $('rTitle').textContent=b.title;$('rAuthor').textContent=b.author;
   const rd=$('reader');rd.hidden=false;requestAnimationFrame(()=>rd.classList.add('on'));
   const saved=(load()[b.id]||{}).page||1,mobile=isMobile();
@@ -384,41 +464,78 @@ function buildScroll(saved){
   $('cur').textContent=saved;
 }
 
-/* ---------- WEBTOON: webtoon/bookN/1.png, 2.png, ... until one is missing ---------- */
+/* ---------- WEBTOON READER: one long scroll of webtoon/1.png, 2.png, ... ---------- */
+/* the spine slides up out of the shelf and grows toward you (no cover), then the reader fades in */
+async function openComic(n,el){
+  const my=++tok;mode='comic';fmt='pdf';zoom=1;destroyEpub();leaves=[];
+  bk={id:'comic',title:'Webtoon',author:AUTHOR};
+  $('rTitle').textContent='Webtoon';$('rAuthor').textContent=AUTHOR;
+  const rd=$('reader'),mobile=isMobile();
+  let g,anim,delay=0;
+  if(!mobile&&el){
+    const r=el.getBoundingClientRect();
+    g=el.cloneNode(true);g.className='spine thin ghost';
+    Object.assign(g.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
+    document.body.appendChild(g);el.style.visibility='hidden';
+    const dx=innerWidth/2-(r.left+r.width/2),dy=innerHeight/2-(r.top+r.height/2),sc=Math.max(3,innerHeight/r.height*1.1);
+    anim=g.animate([
+      {transform:'translate(0,0) scale(1)',opacity:1,offset:0},
+      {transform:'translate(0,-22px) scale(1.06)',opacity:1,offset:.3},
+      {transform:`translate(${dx}px,${dy}px) scale(${sc})`,opacity:0,offset:1}
+    ],{duration:850,easing:'ease-in-out',fill:'forwards'}).finished.catch(()=>{});
+    delay=330;
+  }
+  await new Promise(r=>setTimeout(r,delay));
+  if(my!=tok){g&&g.remove();return}
+  rd.hidden=false;requestAnimationFrame(()=>rd.classList.add('on'));
+  openWebtoon(my,n);
+  if(anim){await anim;g.remove()}
+}
 let wt={my:0,n:1,done:false,busy:false,target:1};
-const wtLoad=n=>new Promise(r=>{const im=new Image();im.decoding='async';im.onload=()=>r(im);im.onerror=()=>r(null);im.src=`${bk.wt}/${n}.${WT_EXT}`});
-async function openWebtoon(my){
-  destroyEpub();showView('webtoon');
-  const s=$('webtoon'),col=$('wtCol'),saved=(load()['wt-'+bk.id]||{}).page||1;
+const wtLoad=n=>new Promise(r=>{const im=new Image();im.decoding='async';im.onload=()=>r(im);im.onerror=()=>r(null);im.src=wtSrc(n)});
+function wtEnd(w,n){
+  w.done=true;$('tot').textContent=Math.max(1,n-1);
+  const e=document.createElement('div');e.className='end';
+  if(n==1)e.textContent=`No images found. Put 1.${WT_EXT}, 2.${WT_EXT}, ... in the ${WT_DIR} folder.`;
+  else{e.classList.add('tbc');e.innerHTML='<svg viewBox="0 0 120 40" width="96" height="32" aria-hidden="true"><path d="M0 20 L26 0 L26 12 L120 12 L120 28 L26 28 L26 40 Z" fill="#f2b705" stroke="#5a3b00" stroke-width="2" stroke-linejoin="round"/></svg><span class="tx">To Be Continued</span>'}
+  $('wtCol').appendChild(e);
+}
+async function openWebtoon(my,start){
+  showView('webtoon');
+  const s=$('webtoon'),col=$('wtCol'),saved=start||(load()[WT_KEY]||{}).page||1;
   col.innerHTML='';zoomApply();s.scrollTop=0;
-  wt={my,n:1,done:false,busy:false,target:saved};
-  $('cur').textContent=saved;$('tot').textContent='…';
+  const w=wt={my,n:1,done:false,busy:false,target:saved};
+  $('cur').textContent=saved;$('tot').textContent=comicCount||'…';
   s.onscroll=()=>{wtFill();wtTrack()};
+  /* pages 1..saved load in parallel so opening on a late page is quick; the rest load as you scroll */
+  const first=await Promise.all(Array.from({length:saved},(_,i)=>wtLoad(i+1)));
+  if(w!==wt||my!=tok)return;
+  for(let i=0;i<first.length;i++){
+    const im=first[i];
+    if(!im){wtEnd(w,i+1);break}
+    im.dataset.n=i+1;col.appendChild(im);w.n=i+2;
+  }
+  const im=col.querySelector(`img[data-n="${saved}"]`);
+  if(im)s.scrollTop=im.offsetTop;
+  s.focus();
   await wtFill();
-  if(my==tok){const im=col.querySelector(`img[data-n="${saved}"]`);if(im)s.scrollTop=im.offsetTop;s.focus()}
 }
 async function wtFill(){
   const w=wt,s=$('webtoon'),col=$('wtCol');
   if(w.busy||w.done)return;w.busy=true;
-  while(w===wt&&w.my==tok&&!w.done&&(w.n<=w.target||s.scrollHeight-s.scrollTop-s.clientHeight<2500)){
+  while(w===wt&&w.my==tok&&!w.done&&s.scrollHeight-s.scrollTop-s.clientHeight<2500){
     const n=w.n,im=await wtLoad(n);
     if(w!==wt||w.my!=tok)break;
-    if(!im){
-      w.done=true;$('tot').textContent=Math.max(1,n-1);
-      const e=document.createElement('div');e.className='end';
-      if(n==1)e.textContent=`No images found. Put 1.${WT_EXT}, 2.${WT_EXT}, ... in the ${bk.wt} folder.`;
-      else{e.classList.add('tbc');e.innerHTML='<svg viewBox="0 0 120 40" width="96" height="32" aria-hidden="true"><path d="M0 20 L26 0 L26 12 L120 12 L120 28 L26 28 L26 40 Z" fill="#f2b705" stroke="#5a3b00" stroke-width="2" stroke-linejoin="round"/></svg><span class="tx">To Be Continued</span>'}
-      col.appendChild(e);break;
-    }
+    if(!im){wtEnd(w,n);break}
     im.dataset.n=n;im.alt='';col.appendChild(im);w.n++;
-    $('tot').textContent=(w.n-1)+'+';
+    $('tot').textContent=comicCount||(w.n-1)+'+';
   }
   w.busy=false;
 }
 function wtTrack(){
   const s=$('webtoon'),y=s.scrollTop+s.clientHeight*.3;let p=1;
   for(const im of $('wtCol').children){if(!im.dataset.n)continue;if(im.offsetTop<=y)p=+im.dataset.n;else break}
-  $('cur').textContent=p;save('wt-'+bk.id,p);
+  $('cur').textContent=p;save(WT_KEY,p);
 }
 
 /* ---------- EPUB ---------- */
@@ -496,8 +613,12 @@ addEventListener('pointerup',e=>{
   dr=null;
 });
 stage.addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();setZoom(zoom+(e.deltaY<0?.25:-.25))}},{passive:false});
-addEventListener('resize',()=>{if(!$('reader').hidden&&view=='book')layout()});
-document.addEventListener('DOMContentLoaded',renderShelf);
+let rsz;
+addEventListener('resize',()=>{
+  if(!$('reader').hidden&&view=='book')layout();
+  clearTimeout(rsz);rsz=setTimeout(()=>{if($('reader').hidden)renderComics()},200);
+});
+document.addEventListener('DOMContentLoaded',()=>{renderShelf();initComics()});
 function applyTheme(m){
   document.body.classList.toggle('mc',m);
   document.querySelectorAll('.thTxt').forEach(e=>e.textContent=m?'Classic':'Minecraft');
