@@ -428,17 +428,24 @@ async function openBook(b,el){
   buildBook();showView('book');layout();
   const bookEl=$('book');bookEl.style.visibility='hidden';
   const sr=$('spread').getBoundingClientRect();
-  /* only the cover is awaited; it renders while the book flies to the centre */
-  await Promise.all([
-    draw(leaves[0].querySelector('canvas'),1,PX()),
-    g.animate([{transform:T(0,-14,1.05,0)},{transform:T(sr.left+sr.width/2-r.left-r.width/2,sr.top+sr.height/2-r.top-r.height/2,H/r.height,-90)}],{duration:750,easing:'ease-in',fill:'forwards'}).finished
-  ]);
+  const target=Math.floor((saved-1)/2)||1;
+  /* 1) render the real cover first; the spine stays lifted on the shelf until it is ready,
+        so the cover never appears blank or "loads in" after the turn */
+  const pagesReady=preload(target);
+  await draw(leaves[0].querySelector('canvas'),1,PX());
   if(my!=tok){g.remove();return}
+  /* 2) the spine flies to the centre and turns away */
+  await g.animate([{transform:T(0,-14,1.05,0)},{transform:T(sr.left+sr.width/2-r.left-r.width/2,sr.top+sr.height/2-r.top-r.height/2,H/r.height,-90)}],{duration:750,easing:'ease-in',fill:'forwards'}).finished;
+  if(my!=tok){g.remove();return}
+  /* 3) the finished cover turns into view straight away (no gap) */
   g.remove();bookEl.style.visibility='visible';
   ensure(1);
   await bookEl.animate([{transform:`translateX(${-BW/2}px) rotateY(90deg)`},{transform:`translateX(${-BW/2}px) rotateY(0deg)`}],{duration:550,easing:'ease-out'}).finished;
   if(my!=tok)return;
-  setTimeout(()=>{if(my==tok)go(Math.floor((saved-1)/2)||1)},300);
+  /* 4) the book opens only once the pages it opens to are rendered */
+  await Promise.all([pagesReady,new Promise(res=>setTimeout(res,250))]);
+  if(my!=tok)return;
+  go(target);
   setTimeout(()=>{if(my==tok)showFmtHint()},500);
 }
 
@@ -473,8 +480,12 @@ function setZoom(z){
 function zoomApply(){$('wtCol').style.setProperty('--z',zoom);$('zl').textContent=Math.round(zoom*100)+'%'}
 
 /* ---------- page rendering ---------- */
-async function draw(cv,n,px){
-  if(!cv||cv.dataset.d)return;cv.dataset.d=1;
+/* draw() remembers its promise on the canvas, so every caller can await the same render (cover, pages) */
+function draw(cv,n,px){
+  if(!cv)return Promise.resolve();
+  return cv._p||(cv._p=drawNow(cv,n,px));
+}
+async function drawNow(cv,n,px){
   const x=cv.getContext('2d');
   if(!pdf||n<1||n>N){
     cv.width=Math.round(px);cv.height=Math.round(px/ratio);
@@ -487,7 +498,14 @@ async function draw(cv,n,px){
     const p=await pdf.getPage(n),v=p.getViewport({scale:1}),vp=p.getViewport({scale:px/v.width});
     cv.width=vp.width;cv.height=vp.height;
     await p.render({canvasContext:x,viewport:vp}).promise;
-  }catch(e){delete cv.dataset.d}
+  }catch(e){cv._p=null}
+}
+/* renders the two pages of spread k (left = back of leaf k-1, right = front of leaf k) */
+function preload(k){
+  const px=PX(),jobs=[],a=leaves[k-1],b=leaves[k];
+  if(a)jobs.push(draw(a.querySelectorAll('canvas')[1],2*k,px));
+  if(b)jobs.push(draw(b.querySelectorAll('canvas')[0],2*k+1,px));
+  return Promise.all(jobs);
 }
 /* renders the visible pages first, then neighbours (r = how far to look ahead/behind) */
 function ensure(r=2){
