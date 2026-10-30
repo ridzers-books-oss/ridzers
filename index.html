@@ -96,6 +96,13 @@ h2{font:800 34px Cinzel,serif;text-align:center;margin:30px 0 22px;color:#f6e3b4
 .foot input{flex:1;accent-color:#c9833a}
 footer{padding:12px;text-align:center;font-size:12px;color:#8a6a40;background:#0a0503cc}
 
+/* ---------- loading indicator ---------- */
+#ld{position:absolute;left:50%;bottom:28px;translate:-50% 0;z-index:8;display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:999px;background:#0a0604e6;border:1px solid #e9c987;color:#f6e3b4;font:600 13px Inter,sans-serif;pointer-events:none;opacity:0;transition:opacity .2s}
+#ld.on{opacity:1}
+#ld .sp{width:16px;height:16px;border:3px solid #e9c98755;border-top-color:#e9c987;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mc #ld{border-radius:0;border:3px solid #120a04;background:#6b4a24;color:#fff;font-family:'Pixelify Sans',monospace}
+
 /* ---------- fullscreen: hides every bar, floating button brings them back ---------- */
 body.fs .top,body.fs .bar,body.fs .foot,body.fs footer{display:none}
 #fsExit{display:none;position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:8px;z-index:90;width:40px;height:40px;padding:0;border-radius:50%;opacity:.55}
@@ -221,6 +228,7 @@ body.mc{font-family:'Pixelify Sans',monospace;color:#fff;background:#1b130b coni
       <div id="epubArea"></div>
       <div id="side"><header><span>CONTENTS</span><span style="cursor:pointer" onclick="$('side').classList.remove('open')"><i class="fa-solid fa-xmark"></i></span></header><div id="toc"></div></div>
     </div>
+    <div id="ld"><span class="sp"></span><span id="ldTxt">Loading…</span></div>
     <button class="arrow" id="prev" hidden onclick="go(c-1)"><i class="fa-solid fa-chevron-left"></i></button>
     <button class="arrow" id="next" hidden onclick="go(c+1)"><i class="fa-solid fa-chevron-right"></i></button>
   </div>
@@ -241,8 +249,9 @@ const AUTHOR='Liam L. Larmark';
    webtoon/0/1.png, webtoon/0/2.png ...   (chapter 0)
    webtoon/1/1.png, webtoon/1/2.png ...   (chapter 1) ... one thin spine on the Webtoons shelf per chapter folder
    WT_COUNT: leave 0 to detect chapters automatically (a chapter exists when webtoon/N/1.png does, starting at N=0),
-   or set it to the NUMBER of chapters (e.g. 12 means chapters 0 to 11) to skip detection. */
-const BOOK_DIR='book',WT_DIR='webtoon',WT_EXT='png',WT_COUNT=0,WT_LAST='wt-last';
+   or set it to the NUMBER of chapters (e.g. 12 means chapters 0 to 11) to skip detection (faster start).
+   WT_EXT: change to 'webp' after converting your images to WebP (much smaller files). */
+const BOOK_DIR='book',WT_DIR='webtoon',WT_EXT='webp',WT_COUNT=0,WT_LAST='wt-last';
 // [title, cover/spine color, text color, height, width, shelf row]
 const SPECS=[
  ['Book 1','#0f0f10','#e8c777',250,64,1],['Book 2','#2d2d30','#e8c777',226,56,1],
@@ -254,6 +263,15 @@ const KEY='gentlemans_archive_progress_v8';
 const FMTS=['pdf','epub'];
 let bk,pdf,N=50,L=1,c=0,ratio=.7,W=0,H=0,BW=0,zoom=1,fmt='pdf',view='',tok=0,leaves=[],eb=null,rend=null,mode='book';
 const isMobile=()=>innerWidth<768;
+
+/* loading indicator: only appears if something takes longer than 150ms, so fast loads never flicker */
+let ldTimer=0;
+function showLoad(txt,delay=150){
+  if(ldTimer)return;
+  ldTimer=setTimeout(()=>{$('ldTxt').textContent=txt||'Loading…';$('ld').classList.add('on')},delay);
+}
+function hideLoad(){clearTimeout(ldTimer);ldTimer=0;$('ld').classList.remove('on')}
+
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
 const save=(id,p)=>{try{const d=load();d[id]={page:p,updatedAt:new Date().toISOString()};localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
 
@@ -407,7 +425,7 @@ async function setFormat(f){
 const T=(x,y,s,r)=>`perspective(1800px) translate(${x}px,${y}px) scale(${s}) rotateY(${r}deg)`;
 const PX=()=>Math.min(2200,Math.round(W*2.5));
 async function openBook(b,el){
-  const my=++tok;bk=b;mode='book';fmt='pdf';zoom=1;c=0;pdf=null;N=50;ratio=.7;leaves=[];destroyEpub();
+  const my=++tok;hideLoad();bk=b;mode='book';fmt='pdf';zoom=1;c=0;pdf=null;N=50;ratio=.7;leaves=[];destroyEpub();
   $('rTitle').textContent=b.title;$('rAuthor').textContent=b.author;
   const rd=$('reader');rd.hidden=false;requestAnimationFrame(()=>rd.classList.add('on'));
   const saved=(load()[b.id]||{}).page||1,mobile=isMobile();
@@ -523,6 +541,9 @@ function go(n){
   $('sl').value=c;
   $('cur').textContent=c==0?1:c==L?`${Math.min(2*c,N)}`:`${2*c}–${Math.min(2*c+1,N)}`;
   save(bk.id,Math.min(2*c+1,N));
+  /* show the spinner only if the pages of this spread are not rendered yet */
+  const my=c;showLoad('Loading page…');
+  preload(c).then(()=>{if(my==c)hideLoad()});
 }
 
 /* mobile: vertical scroll of the PDF */
@@ -538,7 +559,7 @@ function buildScroll(saved){
 /* ---------- WEBTOON READER: all chapters in one continuous scroll (webtoon/<chapter>/1.png, 2.png, ...) ---------- */
 /* the spine slides up out of the shelf and grows toward you (no cover), then the reader fades in */
 async function openComic(ch,el){
-  const my=++tok;mode='comic';fmt='pdf';zoom=1;wtCh=ch;destroyEpub();leaves=[];
+  const my=++tok;hideLoad();mode='comic';fmt='pdf';zoom=1;wtCh=ch;destroyEpub();leaves=[];
   bk={id:'comic',title:'Chapter '+ch,author:AUTHOR};
   $('rTitle').textContent='Chapter '+ch;$('rAuthor').textContent=AUTHOR;
   const rd=$('reader'),mobile=isMobile();
@@ -563,9 +584,9 @@ async function openComic(ch,el){
   if(anim){await anim;g.remove()}
 }
 
-const WT_AHEAD=5;   /* how many pages are downloaded in advance (raise for faster, lower to save data) */
+const WT_AHEAD=8;   /* how many pages are downloaded in advance (raise for faster, lower to save data) */
 const WT_TRIES=3;   /* a page must fail this many times in a row before it counts as "missing" */
-let wt={my:0,ch:0,n:1,done:false,busy:false,positioned:false,startCh:0,target:1,len:{},cnt:{},raf:0};
+let wt={my:0,ch:0,n:1,done:false,busy:false,positioned:false,startCh:0,target:1,len:{},cnt:{},raf:0,wait:false};
 const wtCache=new Map();
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const wtLoad=(ch,n)=>new Promise(r=>{const im=new Image();im.decoding='async';im.onload=()=>r(im);im.onerror=()=>r(null);im.src=wtSrc(ch,n)});
@@ -609,14 +630,20 @@ async function openWebtoon(my,ch,start){
   const s=$('webtoon'),col=$('wtCol'),saved=start||wtPageOf(ch);
   col.innerHTML='';wtCache.clear();zoomApply();s.scrollTop=0;
   wtCh=ch;
-  const w=wt={my,ch,n:1,startCh:ch,target:saved,positioned:false,done:false,busy:false,len:{},cnt:{},raf:0};
+  const w=wt={my,ch,n:1,startCh:ch,target:saved,positioned:false,done:false,busy:false,len:{},cnt:{},raf:0,wait:false};
   save(WT_LAST,ch);
   $('cur').textContent=saved;$('tot').textContent='…';
-  s.onscroll=()=>{wtFill();wtTrack()};
+  s.onscroll=()=>{wtFill();wtTrack();wtSpin()};
   /* if you resume on a late page, pages 1..saved all download in parallel */
   for(let i=1;i<=Math.min(saved,40);i++)wtGet(ch,i);
   s.focus();
   await wtFill();
+}
+
+/* shows the spinner if the loader is still waiting on a page and the reader is close to the bottom */
+function wtSpin(){
+  const s=$('webtoon');
+  if(wt.wait&&s.scrollHeight-s.scrollTop-s.clientHeight<s.clientHeight*1.5)showLoad('Loading next page…');
 }
 
 /* ONE loader, one page at a time, always in order. Pages are appended exactly once,
@@ -635,7 +662,10 @@ async function wtFill(){
       for(let i=1;i<=WT_AHEAD;i++)if(!w.len[ch]||n+i<=w.len[ch])wtGet(ch,n+i);
       /* if the page after this one does not exist, the chapter is about to end: warm up the next chapter */
       if(more)wtGet(ch,n+1).then(x=>{if(!x&&live())wtGet(ch+1,1)});
+      w.wait=true;wtSpin();
+      if(!w.positioned)showLoad('Loading…');
       const im=await wtGet(ch,n);
+      w.wait=false;hideLoad();
       if(!live())break;
       if(!im){
         /* chapter folder has no images at all */
@@ -657,7 +687,7 @@ async function wtFill(){
         w.positioned=true;s.scrollTop=el.offsetTop;wtTrack();
       }
     }
-  }finally{w.busy=false}
+  }finally{w.busy=false;w.wait=false;if(w===wt)hideLoad()}
 }
 
 /* works out which page/chapter is on screen; updates the title, counter and saved progress */
@@ -711,7 +741,7 @@ async function openEpub(my){
 
 /* ---------- misc ---------- */
 function closeReader(){
-  hideFmtHint();tok++;const rd=$('reader');rd.classList.remove('on');rd.hidden=true;
+  hideLoad();hideFmtHint();tok++;const rd=$('reader');rd.classList.remove('on');rd.hidden=true;
   document.querySelectorAll('.ghost').forEach(g=>g.remove());
   destroyEpub();leaves=[];$('book').innerHTML='';$('scroll').innerHTML='';$('wtCol').innerHTML='';wtCache.clear();
   if(document.fullscreenElement&&document.fullscreenElement!==document.documentElement)document.exitFullscreen().catch(()=>{});
