@@ -77,14 +77,19 @@ h2{font:800 34px Cinzel,serif;text-align:center;margin:30px 0 22px;color:#f6e3b4
 #epub{position:absolute;inset:0;background:#fff;color:#18181b}
 #epubArea{position:absolute;inset:0;max-width:900px;margin:0 auto;overflow:hidden}
 /* webtoon: stacked images, no gaps */
-#webtoon{position:absolute;inset:0;overflow:auto;background:#000;outline:0}
+#webtoon{position:absolute;inset:0;overflow:auto;overflow-anchor:none;background:#000;outline:0}
 #webtoon .col{width:calc(min(100vw,800px)*var(--z,1));margin:0 auto}
 #webtoon,#webtoon *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #webtoon .pg{display:block;width:100%;margin:0;padding:0;border:0;background-repeat:no-repeat;background-size:100% 100%;pointer-events:none;-webkit-user-drag:none}
 #webtoon .end{font:600 14px Inter,sans-serif;color:#c9954f;text-align:center;padding:40px 20px;line-height:1.5}
-#webtoon .end.tbc{display:flex;align-items:center;justify-content:flex-start;gap:14px;text-align:left;padding:26px 22px 40px;background:#000}
-#webtoon .tbc svg{flex:none;max-width:30%;height:auto}
-#webtoon .tbc .tx{font:italic 800 clamp(22px,5.5vw,36px)/1 Inter,sans-serif;color:#f2b705;letter-spacing:.01em;text-shadow:2px 2px 0 #5a3b00,-1px -1px 0 #5a3b00,1px -1px 0 #5a3b00,-1px 1px 0 #5a3b00}
+/* "To Be Continued" (JoJo style arrow), themed */
+#webtoon .end.tbc{display:flex;justify-content:center;padding:34px 16px 54px;background:#120a04}
+#webtoon .tbc svg{width:min(100%,560px);height:auto;overflow:visible}
+.tbc .sh{fill:#4a2a10;stroke:#e9c987;stroke-width:3;stroke-linejoin:round}
+.tbc text{fill:#f6e3b4;font:800 34px Cinzel,serif}
+.mc #webtoon .end.tbc{background:#1b130b}
+.mc .tbc .sh{fill:#6b4a24;stroke:#120a04;stroke-width:5;stroke-linejoin:miter}
+.mc .tbc text{fill:#fff;font-family:'Pixelify Sans',monospace;font-weight:700}
 #side{position:absolute;left:0;top:0;bottom:0;width:min(320px,80vw);z-index:6;background:#18110b;border-right:1px solid #3b2210;transform:translateX(-100%);transition:transform .3s;display:flex;flex-direction:column;color:#e8d3a8}
 #side.open{transform:none}
 #side header{display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid #3b2210;font:700 13px Cinzel,serif}
@@ -134,7 +139,6 @@ body.fs #fsExit{display:block}
  h2{margin:20px 0 16px;font-size:26px}
  #zoomBox{display:none!important}
  #webtoon .col{width:100%}
- #webtoon .tbc .tx{font-size:clamp(20px,6vw,28px)}
  #scroll{padding:8px 4px;gap:8px}
 }
 
@@ -300,7 +304,7 @@ function renderShelf(){
 }
 
 /* ---------- WEBTOON SHELF: one thin spine per chapter folder (webtoon/0/, webtoon/1/, ...) ---------- */
-const WT_COLORS=['#7a1f1f','#1f3a5f','#2f5d3a','#5b3a7a','#a8631a','#1d5c63','#8a2d52','#3b3b3b'];
+const WT_COLORS=['#0b0b0c','#121214','#18181a'];
 let comicCount=0,comicReady=false,wtCh=0;
 const wtSrc=(ch,n)=>`${WT_DIR}/${ch}/${n}.${WT_EXT}`;
 const wtPageOf=ch=>(load()['wt-ch-'+ch]||{}).page||1;
@@ -586,7 +590,7 @@ async function openComic(ch,el){
 
 const WT_AHEAD=8;   /* how many pages are downloaded in advance (raise for faster, lower to save data) */
 const WT_TRIES=3;   /* a page must fail this many times in a row before it counts as "missing" */
-let wt={my:0,ch:0,n:1,done:false,busy:false,positioned:false,startCh:0,target:1,len:{},cnt:{},raf:0,wait:false};
+let wt={my:0,ch:0,n:1,done:false,busy:false,positioned:false,startCh:0,topCh:0,upBusy:false,target:1,len:{},cnt:{},raf:0,wait:false};
 const wtCache=new Map();
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const wtLoad=(ch,n)=>new Promise(r=>{const im=new Image();im.decoding='async';im.onload=()=>r(im);im.onerror=()=>r(null);im.src=wtSrc(ch,n)});
@@ -621,7 +625,7 @@ function wtEnd(w,none){
   w.done=true;w.positioned=true;
   const e=document.createElement('div');e.className='end';
   if(none)e.textContent=`No images found. Put 1.${WT_EXT}, 2.${WT_EXT}, ... in the ${WT_DIR}/${w.ch} folder.`;
-  else{e.classList.add('tbc');e.innerHTML='<svg viewBox="0 0 120 40" width="96" height="32" aria-hidden="true"><path d="M0 20 L26 0 L26 12 L120 12 L120 28 L26 28 L26 40 Z" fill="#f2b705" stroke="#5a3b00" stroke-width="2" stroke-linejoin="round"/></svg><span class="tx">To Be Continued</span>'}
+  else{e.classList.add('tbc');e.innerHTML='<svg viewBox="0 0 600 100" aria-hidden="true"><polygon class="sh" points="0,50 58,0 58,22 440,22 440,78 58,78 58,100"/><polygon class="sh" points="454,22 478,22 478,78 454,78"/><polygon class="sh" points="490,22 516,22 566,78 540,78"/><polygon class="sh" points="530,22 590,22 590,78 566,78"/><text x="250" y="52" text-anchor="middle" dominant-baseline="central" textLength="340" lengthAdjust="spacingAndGlyphs">TO BE CONTINUED</text></svg>'}
   $('wtCol').appendChild(e);
 }
 
@@ -630,10 +634,10 @@ async function openWebtoon(my,ch,start){
   const s=$('webtoon'),col=$('wtCol'),saved=start||wtPageOf(ch);
   col.innerHTML='';wtCache.clear();zoomApply();s.scrollTop=0;
   wtCh=ch;
-  const w=wt={my,ch,n:1,startCh:ch,target:saved,positioned:false,done:false,busy:false,len:{},cnt:{},raf:0,wait:false};
+  const w=wt={my,ch,n:1,startCh:ch,topCh:ch,upBusy:false,target:saved,positioned:false,done:false,busy:false,len:{},cnt:{},raf:0,wait:false};
   save(WT_LAST,ch);
   $('cur').textContent=saved;$('tot').textContent='…';
-  s.onscroll=()=>{wtFill();wtTrack();wtSpin()};
+  s.onscroll=()=>{wtFill();wtFillUp();wtTrack();wtSpin()};
   /* if you resume on a late page, pages 1..saved all download in parallel */
   for(let i=1;i<=Math.min(saved,40);i++)wtGet(ch,i);
   s.focus();
@@ -684,10 +688,39 @@ async function wtFill(){
       wtCache.delete(ch+'/'+n);
       w.cnt[ch]=n;w.n++;
       if(!w.positioned&&ch==w.startCh&&n==w.target){
-        w.positioned=true;s.scrollTop=el.offsetTop;wtTrack();
+        w.positioned=true;s.scrollTop=el.offsetTop;wtTrack();wtFillUp();
       }
     }
   }finally{w.busy=false;w.wait=false;if(w===wt)hideLoad()}
+}
+
+/* scrolling near the top loads the previous chapter above, and keeps the reader exactly where they were */
+async function wtFillUp(){
+  const w=wt,s=$('webtoon'),col=$('wtCol');
+  if(w.upBusy||!w.positioned||w.topCh<=0)return;
+  if(s.scrollTop>Math.max(1500,s.clientHeight))return;
+  w.upBusy=true;
+  const live=()=>w===wt&&w.my==tok;
+  try{
+    const ch=w.topCh-1,els=[];
+    showLoad('Loading previous chapter…');
+    for(let n=1;;n++){
+      for(let i=1;i<=WT_AHEAD;i++)wtGet(ch,n+i);
+      const im=await wtGet(ch,n);
+      if(!live())return;
+      if(!im)break;
+      els.push(wtPageEl(im,n,ch));
+      wtCache.delete(ch+'/'+n);
+    }
+    w.topCh=ch;
+    if(!els.length)return;
+    const prevH=s.scrollHeight,prevTop=s.scrollTop,frag=document.createDocumentFragment();
+    els.forEach(e=>frag.appendChild(e));
+    col.insertBefore(frag,col.firstElementChild);
+    s.scrollTop=prevTop+(s.scrollHeight-prevH);
+    w.len[ch]=els.length;w.cnt[ch]=els.length;
+    wtTrack();
+  }finally{w.upBusy=false;if(w===wt)hideLoad()}
 }
 
 /* works out which page/chapter is on screen; updates the title, counter and saved progress */
